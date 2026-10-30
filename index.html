@@ -270,7 +270,6 @@ function fx(dt){const q=1-Math.max(0,S.f)/100,t=performance.now()/1000;
  ren.domElement.style.transform=`scale(${1.03+Math.sin(t*1.4)*.012*tp*(1+q*2)}) rotate(${Math.sin(t*.9)*.35*tp*(1+q*2)}deg)`;
  const ac=$('acid');ac.style.opacity=Math.min(.55,.14*tp+q*.35);ac.style.transform=`rotate(${t*8}deg)`;
  $('fl').style.opacity=S.flash*.8;
- $('fill').style.width=Math.max(0,S.f)+'%';$('fill').style.background=`hsl(${S.f*1.2},90%,55%)`;
  let extra='';if(S.cl)extra=`   |   Пень: ${Math.hypot(pos.x-stump.position.x,pos.z-stump.position.z).toFixed(0)} м`;if(S.boost>0)extra+=`   |   Ясность ${S.boost.toFixed(0)} с`;
  const clock=S.t.toFixed(1),modeLabel=S.mode==='bhop'?'BUNNY HOP':'RAD FOREST',detail=S.mode==='bhop'?`STAGE ${S.checkpoint} · ${bhopPads.length} CHUNKS`:`KILLS ${S.k} · FOCUS ${Math.max(0,S.f).toFixed(0)}`;
  $('matchhud').innerHTML=`<div class="matchmode">${modeLabel}</div><div class="matchclock">${clock}</div><div class="matchdetail">${detail}</div>`;
