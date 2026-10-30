@@ -9,8 +9,8 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 #fl{position:fixed;inset:0;pointer-events:none;background:#fff;opacity:0}
 #ch{position:fixed;left:50%;top:50%;width:16px;height:16px;transform:translate(-50%,-50%);border:2px solid #fff;border-radius:50%;pointer-events:none;box-shadow:0 0 6px #000}
 #ch:after{content:"";position:absolute;left:50%;top:50%;width:4px;height:4px;margin:-2px;background:#ff3cac;border-radius:50%}
-#hud{position:fixed;left:16px;top:calc(12px + env(safe-area-inset-top,0px));width:min(360px,70vw);pointer-events:none;text-shadow:0 0 4px #000;font-size:14px}
-#bar{height:16px;border:1px solid #fff;background:rgba(0,0,0,.5)}#fill{display:block;height:100%;background:#4f4}
+#hud{position:fixed;left:16px;top:calc(12px + env(safe-area-inset-top,0px));width:min(440px,calc(100vw - 32px));pointer-events:none;text-shadow:0 1px 5px #000;font-size:13px}
+#bar{height:5px;border:1px solid rgba(255,255,255,.22);background:rgba(3,10,19,.8);box-shadow:0 2px 12px #0008;border-radius:8px;overflow:hidden}#fill{display:block;height:100%;background:linear-gradient(90deg,#35f2ba,#b8ff68);box-shadow:0 0 12px #48ffd0}
 #hb{position:fixed;left:50%;top:62%;width:200px;margin-left:-100px;height:8px;border:1px solid #7dffb2;display:none}#hf{display:block;height:100%;width:0;background:#7dffb2}
 #msg{position:fixed;left:0;right:0;top:18%;text-align:center;font-size:22px;font-weight:bold;text-shadow:0 0 6px #000;pointer-events:none}
 #ov{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;background:radial-gradient(ellipse at 50% 36%,rgba(63,22,91,.83),rgba(5,4,17,.96) 72%);backdrop-filter:blur(10px);padding:20px;z-index:5}
@@ -22,13 +22,15 @@ button{margin-top:14px;padding:12px 28px;font-size:16px;font-weight:750;border:0
 .row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:6px 0;font-size:14px;text-align:left}.row input{width:55%;accent-color:#ff3cac}
 #set{margin:14px 0 4px;padding:10px 14px;border:1px solid rgba(255,255,255,.2);border-radius:10px;background:rgba(255,255,255,.05)}
 #acid{position:fixed;inset:-40%;pointer-events:none;background:conic-gradient(from 0deg,#ff00aa,#ffee00,#00ffd5,#7a00ff,#ff00aa);mix-blend-mode:color;opacity:.15}
-#bar{height:18px;border-radius:9px;overflow:hidden}
-#st{margin-top:6px;padding:4px 10px;border-radius:8px;background:rgba(0,0,0,.4);display:inline-block}
+#bar{height:5px}
+#st{margin-top:7px;padding:8px 11px;border-radius:10px;background:linear-gradient(105deg,rgba(5,12,20,.91),rgba(7,13,20,.77));border:1px solid rgba(151,239,209,.13);border-left:2px solid #74f0bb;box-shadow:0 6px 20px rgba(0,0,0,.26);backdrop-filter:blur(7px);display:flex;flex-wrap:wrap;align-items:center;gap:5px 10px;line-height:1.15}
+.hudstat{white-space:nowrap;color:#e4f4ef}.hudstat.dim{color:#9eb6b1}.hudspeed{color:#9dffd5;font-size:15px;font-weight:800;letter-spacing:.025em;text-shadow:0 0 12px #48ffd066}.hudsep{color:#4b7266;display:none}
+.hudhint{display:inline-block;margin-top:5px;padding:2px 7px;border-radius:6px;background:rgba(5,12,20,.48);color:rgba(231,255,246,.7);font-size:11px;letter-spacing:.01em}
 .choice{display:flex;gap:8px;margin:12px 0}.choice button{flex:1;margin:0;padding:10px 8px;font-size:13px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);box-shadow:none}.choice button.active{background:linear-gradient(110deg,rgba(255,60,172,.36),rgba(43,210,255,.22));border-color:#ff8bd0;box-shadow:0 0 20px rgba(255,60,172,.16)}
 .label{font-size:11px;text-transform:uppercase;letter-spacing:.16em;color:#bda6d6;text-align:left;margin:14px 0 6px}
 </style></head><body>
 <svg width="0" height="0" style="position:fixed"><filter id="ca" color-interpolation-filters="sRGB"><feColorMatrix in="SourceGraphic" type="matrix" values="1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0" result="r"/><feOffset id="ofr" in="r" dx="0" dy="0" result="r2"/><feColorMatrix in="SourceGraphic" type="matrix" values="0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 1 0" result="g"/><feColorMatrix in="SourceGraphic" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 1 0" result="b"/><feOffset id="ofb" in="b" dx="0" dy="0" result="b2"/><feBlend in="r2" in2="g" mode="screen" result="rg"/><feBlend in="rg" in2="b2" mode="screen"/></filter></svg><div id="acid"></div><div id="vig"></div><div id="fl"></div><div id="ch"></div>
-<div id="hud"><div id="bar"><i id="fill"></i></div><div id="st"></div><div id="hint" style="opacity:.65;font-size:12px;margin-top:4px">1 снайперка · 2 дигл · 3 нож · Esc пауза</div></div>
+<div id="hud"><div id="bar"><i id="fill"></i></div><div id="st"></div><div id="hint" class="hudhint">1 снайперка · 2 дигл · 3 нож · Esc пауза</div></div>
 <div id="hb"><i id="hf"></i></div><div id="msg"></div>
 <div id="ov"><div id="box"></div></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -36,8 +38,9 @@ button{margin-top:14px;padding:12px 28px;font-size:16px;font-weight:750;border:0
 const T=THREE,$=id=>document.getElementById(id),rnd=(a,b)=>a+Math.random()*(b-a);
 const ST=Object.assign({sens:1,vol:.7,mus:.6,fov:80,trip:1},(()=>{try{return JSON.parse(localStorage.getItem('bs3')||'{}')}catch(e){return{}}})());
 function save(){try{localStorage.setItem('bs3',JSON.stringify(ST))}catch(e){}}
-const WPN=[{name:'Снайперка',kind:'sniper',color:0x42e8ff},{name:'Дигл',kind:'deagle',color:0xffc45e},{name:'Керамбит',kind:'knife',color:0xff4fb8},{name:'Бабочка',kind:'knife',color:0x9e7bff},{name:'M9 Bayonet',kind:'knife',color:0x91ffd1}];
-let gameMode='trip',weaponIndex=0;
+const KNIVES=[{name:'Керамбит',color:0xff4fb8},{name:'Бабочка',color:0x9e7bff},{name:'M9 Bayonet',color:0x91ffd1}];
+const WPN=[{name:'Снайперка',kind:'sniper',color:0x42e8ff},{name:'Дигл',kind:'deagle',color:0xffc45e}];
+let gameMode='trip',weaponIndex=0,knifeIndex=0;
 const SD=[['sens','Чувствительность мыши',.2,3,.05],['vol','Громкость',0,1,.02],['mus','Музыка',0,1,.02],['fov','Угол обзора (FOV)',60,110,1],['trip','Сила трипа',0,2,.05]];
 let MG,MB;
 const ren=new T.WebGLRenderer({antialias:true});ren.setPixelRatio(Math.min(devicePixelRatio,2));document.body.prepend(ren.domElement);
@@ -60,10 +63,20 @@ vec3 c=hsv(h,.85,.5+.25*sin(w*2.+t*3.)*tr);
 vec2 g=abs(fract(p.xz*.5)-.5);float l=smoothstep(.44,.5,max(g.x,g.y));c+=l*hsv(fract(h+.5+sin(t)*.1),.7,.8);
 float f=clamp((length(p-cameraPosition)-15.)/105.,0.,1.);c=mix(c,fogc,f);gl_FragColor=vec4(c,1.);}`});
 const ground=new T.Mesh(new T.PlaneGeometry(500,500,150,150),gm);ground.rotation.x=-Math.PI/2;ground.frustumCulled=false;sc.add(ground);
-const bhopMap=new T.Group(),bhopPads=[];{const mat=new T.MeshStandardMaterial({color:0x272044,metalness:.35,roughness:.48,emissive:0x29144a,emissiveIntensity:.6});const glow=new T.MeshBasicMaterial({color:0x46eaff});
- const pad=(x,y,z,sx,sz,i)=>{const m=new T.Mesh(new T.BoxGeometry(sx,.55,sz),i%2?mat:glow);m.position.set(x,y,z);bhopMap.add(m);bhopPads.push({x,y:y+.275,z,sx,sz})};
- pad(0,0,0,12,12,0);for(let i=1;i<=14;i++){const z=-i*11,x=Math.sin(i*1.4)*7,y=1.2+Math.sin(i*.8)*1.4;pad(x,y,z,5.2,5.2,i);const ring=new T.Mesh(new T.TorusGeometry(1.3,.09,8,24),glow);ring.position.set(x,y+.45,z);bhopMap.add(ring)}
- pad(0,0,-165,18,18,1);sc.add(bhopMap);bhopMap.visible=false}
+const bhopMap=new T.Group(),bhopPads=[];let bhopNextId=0,bhopNextZ=0,bhopLastX=0,bhopLastY=0;
+const bhopMat=new T.MeshStandardMaterial({color:0x272044,metalness:.35,roughness:.42,emissive:0x29144a,emissiveIntensity:.55});
+const bhopGlow=new T.MeshStandardMaterial({color:0x182438,metalness:.58,roughness:.24,emissive:0x24dfff,emissiveIntensity:1.15});
+function addBhopPad(x,y,z,sx,sz,id){const g=new T.Group(),base=new T.Mesh(new T.BoxGeometry(sx,.7,sz),id%4===0?bhopGlow:bhopMat);base.position.y=-.35;g.add(base);
+ const top=new T.Mesh(new T.BoxGeometry(sx-.18,.055,sz-.18),new T.MeshBasicMaterial({color:id%2?0x7d55ff:0x42e8ff}));top.position.y=.025;g.add(top);
+ for(const sxSign of[-1,1]){const strip=new T.Mesh(new T.BoxGeometry(.045,.018,sz-.5),new T.MeshBasicMaterial({color:0xffffff}));strip.position.set(sxSign*(sx/2-.18),.06,0);g.add(strip)}
+ g.position.set(x,y,z);bhopMap.add(g);const pad={id,x,y:y+.055,z,sx,sz,mesh:g};bhopPads.push(pad);return pad}
+function disposeBhopPad(p){bhopMap.remove(p.mesh);p.mesh.traverse(o=>{if(!o.isMesh)return;o.geometry.dispose();if(Array.isArray(o.material))o.material.forEach(m=>{if(m!==bhopMat&&m!==bhopGlow)m.dispose()});else if(o.material!==bhopMat&&o.material!==bhopGlow)o.material.dispose()})}
+function streamBhop(){if(!S||S.mode!=='bhop')return;
+ const ahead=110,behind=48;
+ while(bhopNextZ>pos.z-ahead){const id=bhopNextId++,dz=rnd(8.5,12.5);bhopNextZ-=dz;bhopLastX=T.MathUtils.clamp(bhopLastX+rnd(-5.5,5.5),-10,10);bhopLastY=T.MathUtils.clamp(bhopLastY+rnd(-1.15,1.15),-.8,2.4);addBhopPad(bhopLastX,bhopLastY,bhopNextZ, id===0?12:rnd(4.8,6.1),id===0?12:rnd(4.8,6.1),id)}
+ for(let i=bhopPads.length-1;i>=0;i--){const p=bhopPads[i];if(p.z>pos.z+behind){disposeBhopPad(p);bhopPads.splice(i,1)}}
+}
+addBhopPad(0,0,0,12,12,0);bhopNextId=1;bhopNextZ=-7;sc.add(bhopMap);bhopMap.visible=false;
 const skm=new T.ShaderMaterial({side:T.BackSide,depthWrite:false,fog:false,uniforms:{t:{value:0},q:{value:0},tr:{value:1}},
 vertexShader:`varying vec3 d;void main(){d=normalize(position);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
 fragmentShader:HSV+`varying vec3 d;uniform float t,q,tr;
@@ -89,12 +102,43 @@ for(let i=0;i<110;i++){const g=new T.Group(),h=Math.random(),r=rnd(10,95),a=rnd(
  g.position.set(Math.cos(a)*r,0,Math.sin(a)*r);g.userData={p:rnd(0,6),k};deco.push(g);sc.add(g)}
 // Stylized first-person weapon, rebuilt from clean geometric parts for each menu selection.
 const gun=new T.Group();gun.position.set(.26,-.24,-.55);cam.add(gun);let weaponMotion=0;
+function equipped(){return weaponIndex===2?{...KNIVES[knifeIndex],kind:'knife'}:WPN[weaponIndex]}
 function buildWeapon(){while(gun.children.length){const o=gun.children.pop();o.geometry?.dispose();if(Array.isArray(o.material))o.material.forEach(m=>m.dispose());else o.material?.dispose()}
- const w=WPN[weaponIndex],metal=new T.MeshStandardMaterial({color:0x242238,metalness:.82,roughness:.26}),accent=new T.MeshStandardMaterial({color:w.color,emissive:w.color,emissiveIntensity:.55,metalness:.45,roughness:.25}),grip=new T.MeshStandardMaterial({color:0x15131f,roughness:.8});
+ const w=equipped(),metal=new T.MeshStandardMaterial({color:0x292b38,metalness:.9,roughness:.2}),accent=new T.MeshStandardMaterial({color:w.color,emissive:w.color,emissiveIntensity:.38,metalness:.68,roughness:.2}),grip=new T.MeshStandardMaterial({color:0x171622,roughness:.68});
  const add=(geo,mat,x,y,z,rx=0,ry=0,rz=0)=>{const m=new T.Mesh(geo,mat);m.position.set(x,y,z);m.rotation.set(rx,ry,rz);gun.add(m);return m};
- if(w.kind==='sniper'){add(new T.BoxGeometry(.14,.17,.6),metal,0,0,0);add(new T.BoxGeometry(.11,.12,.34),grip,0,-.13,.12);add(new T.CylinderGeometry(.032,.04,.85,10),metal,0,0,-.65,Math.PI/2);add(new T.CylinderGeometry(.075,.075,.31,12),accent,0,.14,-.15,Math.PI/2);add(new T.CylinderGeometry(.11,.11,.09,12),metal,0,.14,-.15,Math.PI/2);add(new T.BoxGeometry(.22,.035,.12),accent,0,.1,-.15)}
- else if(w.kind==='deagle'){add(new T.BoxGeometry(.14,.19,.36),metal,0,.01,-.06);add(new T.BoxGeometry(.12,.2,.18),accent,0,.12,-.11);add(new T.BoxGeometry(.12,.28,.16),grip,0,-.17,.04,.25);add(new T.CylinderGeometry(.035,.035,.43,10),metal,0,.075,-.36,Math.PI/2);add(new T.BoxGeometry(.2,.04,.08),accent,0,.18,-.08)}
- else {add(new T.BoxGeometry(.1,.23,.11),grip,0,-.11,.02,.22);add(new T.TorusGeometry(.09,.018,6,16),accent,0,-.21,.06,Math.PI/2);const blade=add(w.name==='Бабочка'?new T.BufferGeometry():new T.ConeGeometry(.105,.55,4),accent,0,.11,-.27,Math.PI/2);if(w.name==='Бабочка'){const shape=new T.Shape();shape.moveTo(-.08,-.27);shape.lineTo(.1,-.15);shape.lineTo(.06,.22);shape.lineTo(0,.34);shape.lineTo(-.06,.22);shape.closePath();blade.geometry=new T.ShapeGeometry(shape);blade.rotation.set(0,0,0);blade.position.set(0,.02,-.24);blade.scale.set(.55,.9,.12);add(new T.BoxGeometry(.055,.16,.06),metal,0,.05,.01,.35)}}
+ const profile=(pts,mat,depth,x=0,y=0,z=0)=>{const s=new T.Shape();s.moveTo(pts[0][0],pts[0][1]);for(const p of pts.slice(1))s.lineTo(p[0],p[1]);s.closePath();return add(new T.ExtrudeGeometry(s,{depth,bevelEnabled:true,bevelSegments:2,steps:1,bevelSize:.012,bevelThickness:.012}),mat,x,y,z)};
+ if(w.kind==='sniper'){
+  add(new T.BoxGeometry(.17,.2,.62),metal,0,0,.02);add(new T.BoxGeometry(.13,.16,.38),grip,0,-.17,.23,.2);add(new T.BoxGeometry(.12,.12,.34),grip,0,-.01,.47);
+  add(new T.CylinderGeometry(.036,.045,.98,12),metal,0,.01,-.68,Math.PI/2);add(new T.CylinderGeometry(.065,.065,.04,12),accent,0,.01,-.28,Math.PI/2);add(new T.CylinderGeometry(.09,.09,.32,16),metal,0,.16,-.12,Math.PI/2);add(new T.CylinderGeometry(.115,.115,.075,16),accent,0,.16,-.12,Math.PI/2);add(new T.CylinderGeometry(.125,.125,.045,16),metal,0,.16,-.12,Math.PI/2);
+  // Raised optical scope: long tube, mount rings, and visible glass at both ends.
+  const glass=new T.MeshBasicMaterial({color:0x67dfff,transparent:true,opacity:.82});
+  add(new T.BoxGeometry(.28,.035,.52),metal,0,.12,-.05);add(new T.BoxGeometry(.055,.13,.07),metal,0,.19,-.23);add(new T.BoxGeometry(.055,.13,.07),metal,0,.19,.08);
+  add(new T.CylinderGeometry(.075,.075,.53,18),metal,0,.3,-.08,Math.PI/2);add(new T.CylinderGeometry(.098,.098,.055,18),accent,0,.3,-.33,Math.PI/2);add(new T.CylinderGeometry(.098,.098,.055,18),metal,0,.3,.17,Math.PI/2);
+  add(new T.CylinderGeometry(.068,.068,.018,18),glass,0,.3,-.37,Math.PI/2);add(new T.CylinderGeometry(.068,.068,.018,18),glass,0,.3,.205,Math.PI/2);
+  add(new T.CylinderGeometry(.036,.045,.98,12),metal,0,.01,-.68,Math.PI/2);add(new T.CylinderGeometry(.065,.065,.04,12),accent,0,.01,-.28,Math.PI/2);add(new T.CylinderGeometry(.09,.09,.32,16),metal,0,.16,-.12,Math.PI/2);add(new T.CylinderGeometry(.115,.115,.075,16),accent,0,.16,-.12,Math.PI/2);add(new T.CylinderGeometry(.125,.125,.045,16),metal,0,.16,-.12,Math.PI/2);
+  add(new T.BoxGeometry(.12,.13,.22),accent,0,.2,-.56);add(new T.BoxGeometry(.08,.22,.12),metal,0,-.17,-.02,.12);add(new T.BoxGeometry(.13,.07,.14),metal,.09,-.07,-.18);
+ }else if(w.kind==='deagle'){
+  profile([[-.14,-.015],[-.16,.12],[-.13,.23],[-.085,.255],[.115,.255],[.16,.21],[.16,.06],[.095,.015],[.025,.015],[.01,-.055],[-.085,-.055]],metal,.24,0,0,-.16);
+  profile([[-.075,-.045],[.045,-.035],[.115,-.09],[.105,-.31],[.055,-.385],[-.06,-.355],[-.13,-.12]],grip,.15,0,0,.005);
+  add(new T.BoxGeometry(.22,.035,.32),accent,0,.205,-.16);add(new T.BoxGeometry(.18,.025,.25),metal,0,.235,-.16);
+  for(let i=0;i<5;i++)add(new T.BoxGeometry(.17,.012,.025),grip,0,.17-i*.035,.105);
+  add(new T.CylinderGeometry(.046,.046,.56,16),metal,0,.105,-.43,Math.PI/2);add(new T.CylinderGeometry(.059,.059,.035,16),accent,0,.105,-.705,Math.PI/2);add(new T.CylinderGeometry(.044,.044,.018,16),new T.MeshBasicMaterial({color:0x080d17}),0,.105,-.73,Math.PI/2);
+  const guard=add(new T.TorusGeometry(.105,.018,8,24),metal,.035,-.095,.12);guard.scale.set(.72,1,1);add(new T.BoxGeometry(.022,.105,.035),accent,.04,-.09,.12,.15);
+  add(new T.BoxGeometry(.035,.08,.06),metal,0,.275,.015);add(new T.BoxGeometry(.07,.055,.07),accent,0,.055,.19);
+  for(const sx of[-1,1]){const screw=add(new T.CylinderGeometry(.018,.018,.012,12),accent,sx*.079,-.18,.16,Math.PI/2);screw.rotation.z=.2}
+ }else{
+  const kar=w.name==='Керамбит',butter=w.name==='Бабочка',bladeShape=new T.Shape();
+  if(kar){bladeShape.moveTo(-.075,-.12);bladeShape.quadraticCurveTo(.0,-.31,.13,-.29);bladeShape.quadraticCurveTo(.29,-.27,.31,-.12);bladeShape.lineTo(.18,-.19);bladeShape.quadraticCurveTo(.13,-.21,.11,-.13);bladeShape.lineTo(.065,.36);bladeShape.quadraticCurveTo(0,.47,-.035,.35);bladeShape.closePath()}
+  else{bladeShape.moveTo(-.09,-.16);bladeShape.lineTo(-.12,.08);bladeShape.lineTo(-.07,.31);bladeShape.lineTo(0,.46);bladeShape.lineTo(.07,.31);bladeShape.lineTo(.12,.08);bladeShape.lineTo(.09,-.16);bladeShape.closePath()}
+  const bladeMat=new T.MeshStandardMaterial({color:0xc6e2f4,metalness:.96,roughness:.14,emissive:w.color,emissiveIntensity:.08,side:T.DoubleSide});
+  const blade=add(new T.ExtrudeGeometry(bladeShape,{depth:.035,bevelEnabled:true,bevelSegments:2,steps:1,bevelSize:.012,bevelThickness:.012}),bladeMat,0,.18,-.36);
+  const fuller=add(new T.BoxGeometry(.024,.35,.009),accent,0,.3,-.318);fuller.rotation.z=kar?-.12:0;
+  if(butter){blade.position.x=-.075;blade.rotation.z=-.08;const wing=blade.clone();wing.position.x=.075;wing.rotation.z=.08;gun.add(wing);blade.scale.x=-1;add(new T.CylinderGeometry(.052,.052,.09,16),accent,0,.025,-.17,Math.PI/2)}
+  else add(new T.BoxGeometry(.045,.3,.045),accent,0,.33,-.31);
+  add(new T.BoxGeometry(.13,.22,.085),metal,0,-.12,-.1,.12);add(new T.BoxGeometry(.105,.3,.075),grip,0,-.31,-.08,.18);add(new T.BoxGeometry(.12,.035,.083),accent,0,-.32,-.08,.18);
+  for(let i=0;i<4;i++)add(new T.BoxGeometry(.075,.012,.083),metal,0,-.22-i*.048,-.08,.18);
+  add(new T.TorusGeometry(kar?.105:.075,.018,8,22),accent,0,-.47,-.06,Math.PI/2);add(new T.CylinderGeometry(.028,.028,.12,10),metal,0,-.12,-.1,Math.PI/2);
+ }
 }
 buildWeapon();
 // enemy parts
@@ -122,12 +166,15 @@ function mus(f,d,v,ty){if(!A)return;const o=A.createOscillator(),g=A.createGain(
 const PEN=[0,2,4,7,9,12,14,16,19,21];let ni=3;
 setInterval(()=>{if(!(S&&alive&&locked&&A))return;const q=1-Math.max(0,S.f)/100;ni=(ni+(Math.random()<.5?1:-1)+PEN.length)%PEN.length;let f=220*Math.pow(2,PEN[ni]/12);if(Math.random()<q*.5)f*=Math.pow(2,1/12);mus(f,1.8,.09,q>.6?'sawtooth':'sine');if(Math.random()<.15)mus(f/2,3.5,.12)},260);
 function say(m){S.msg=m;S.mt=2.4;$('msg').textContent=m}
-function reset(){if(S)S.en.forEach(e=>sc.remove(e));sc.remove(stump);S={f:100,t:0,k:0,en:[],cl:false,hold:0,boost:0,shake:0,sp:2,nc:10,tick:0,flash:0,cd:0,mt:0,life:0,msg:'',checkpoint:0};bhopMap.visible=gameMode==='bhop';ground.visible=gameMode!=='bhop';deco.forEach(o=>o.visible=gameMode!=='bhop');pos.set(0,0,0);vel.set(0,0,0);yaw=0;pitch=0;alive=true;$('msg').textContent='';if(gameMode==='bhop')say('Bhop park — держи пробел, стрейфуй A/D!')}
-function menu(t,txt,btn,fn){$('box').innerHTML=`<h1>${t}</h1>${txt}<div class="label">Режим игры</div><div class="choice"><button id="m_trip" class="${gameMode==='trip'?'active':''}">Радужный лес</button><button id="m_bhop" class="${gameMode==='bhop'?'active':''}">Bhop-парк</button></div><div class="label">Оружие · слот 3 — ножи</div><div class="choice">${WPN.map((w,i)=>`<button data-w="${i}" class="${weaponIndex===i?'active':''}">${i===0?'1 · ':i===1?'2 · ':'3 · '}${w.name}</button>`).join('')}</div><div id="set">${SD.map(([k,n,a,b,st])=>`<div class="row"><span>${n}</span><input type="range" id="s_${k}" min="${a}" max="${b}" step="${st}" value="${ST[k]}"></div>`).join('')}</div><button id="go">${btn}</button>`;$('ov').style.display='flex';$('go').onclick=fn;
- $('m_trip').onclick=()=>{gameMode='trip';menu(t,txt,btn,fn)};$('m_bhop').onclick=()=>{gameMode='bhop';menu(t,txt,btn,fn)};document.querySelectorAll('[data-w]').forEach(e=>e.onclick=()=>{weaponIndex=+e.dataset.w;buildWeapon();menu(t,txt,btn,fn)});
+function resetBhop(){for(const p of bhopPads)disposeBhopPad(p);bhopPads.length=0;bhopNextId=0;bhopNextZ=0;bhopLastX=0;bhopLastY=0;const p=addBhopPad(0,0,0,12,12,0);bhopNextId=1;bhopNextZ=-7;return p}
+function rebuildBhopAtCheckpoint(){const c=S.checkpointPos;for(const p of bhopPads)disposeBhopPad(p);bhopPads.length=0;bhopNextId=S.checkpoint+1;bhopNextZ=c.z-7;bhopLastX=c.x;bhopLastY=c.y-.055;addBhopPad(c.x,c.y-.055,c.z,9,9,S.checkpoint);streamBhop()}
+function reset(){if(S)S.en.forEach(e=>sc.remove(e));sc.remove(stump);const mode=gameMode;if(mode==='bhop')resetBhop();S={mode,f:100,t:0,k:0,en:[],cl:false,hold:0,boost:0,shake:0,sp:2,nc:10,tick:0,flash:0,cd:0,mt:0,life:0,msg:'',checkpoint:0,checkpointPos:{x:0,y:.055,z:0}};bhopMap.visible=mode==='bhop';ground.visible=mode!=='bhop';deco.forEach(o=>o.visible=mode!=='bhop');pos.set(0,mode==='bhop'?.055:0,0);vel.set(0,0,0);yaw=0;pitch=0;alive=true;$('msg').textContent='';if(mode==='bhop')say('Bhop park — держи пробел, стрейфуй A/D!')}
+function menu(t,txt,btn,fn){$('box').innerHTML=`<h1>${t}</h1>${txt}<div class="label">Режим игры</div><div class="choice"><button id="m_trip" class="${gameMode==='trip'?'active':''}">Радужный лес</button><button id="m_bhop" class="${gameMode==='bhop'?'active':''}">Bhop-парк</button></div><div class="label">Выбери нож · слот 3</div><div class="choice">${KNIVES.map((w,i)=>`<button data-knife="${i}" class="${knifeIndex===i?'active':''}">${w.name}</button>`).join('')}</div><div class="label">В игре: 1 · снайперка &nbsp; 2 · дигл &nbsp; 3 · выбранный нож</div><div id="set">${SD.map(([k,n,a,b,st])=>`<div class="row"><span>${n}</span><input type="range" id="s_${k}" min="${a}" max="${b}" step="${st}" value="${ST[k]}"></div>`).join('')}</div><button id="go">${btn}</button>`;$('ov').style.display='flex';$('go').onclick=fn;
+ $('m_trip').onclick=()=>{gameMode='trip';menu(t,txt,btn,fn)};$('m_bhop').onclick=()=>{gameMode='bhop';menu(t,txt,btn,fn)};document.querySelectorAll('[data-knife]').forEach(e=>e.onclick=()=>{knifeIndex=+e.dataset.knife;if(weaponIndex===2)buildWeapon();menu(t,txt,btn,fn)});
  SD.forEach(([k])=>{const e=$('s_'+k);e.oninput=()=>{ST[k]=+e.value;save();if(MG)MG.gain.value=ST.vol;if(MB)MB.gain.value=ST.mus}})}
 function lock(){audio();ren.domElement.requestPointerLock()}
-document.addEventListener('pointerlockchange',()=>{locked=document.pointerLockElement===ren.domElement;if(locked)$('ov').style.display='none';else if(alive)menu('Пауза','<p>Клик по кнопке вернёт тебя в лес.</p>','Продолжить',lock)});
+function resume(){if(S&&S.mode!==gameMode)reset();lock()}
+document.addEventListener('pointerlockchange',()=>{locked=document.pointerLockElement===ren.domElement;if(locked)$('ov').style.display='none';else if(alive)menu('Пауза','<p>Выбери режим, нож и настройки. При смене режима прогресс начнётся заново.</p>','Продолжить',resume)});
 document.addEventListener('pointerlockerror',()=>{$('box').insertAdjacentHTML('beforeend','<p>Браузер не дал захватить мышь. Открой игру по ссылке в отдельной вкладке.</p>')});
 document.addEventListener('mousemove',e=>{if(!locked)return;yaw-=e.movementX*.0022*ST.sens;pitch=Math.max(-1.5,Math.min(1.5,pitch-e.movementY*.0022*ST.sens))});
 addEventListener('mousedown',e=>{if(locked&&e.button==0)fire=true});addEventListener('mouseup',()=>fire=false);
@@ -136,43 +183,53 @@ menu('Бнихоп-Снайпер',`<p>Радужный лес, причудли
 <p>Увидишь светящийся луч, там <b>Объект Ясности</b>. Подбеги и зажми <b>E</b>, выдержи панику, и Фокус вернётся.</p>`,'Войти',()=>{reset();lock()});
 function burst(p,col){for(let i=0;i<16;i++){const m=new T.Mesh(pg,new T.MeshBasicMaterial({color:col}));m.position.copy(p);m.userData={v:new T.Vector3(rnd(-1,1),rnd(0,1.3),rnd(-1,1)).multiplyScalar(rnd(4,10)),l:.7};sc.add(m);parts.push(m)}}
 function spread(){return .006+(1-S.f/100)*.2+(pos.y>0?.012:0)}
-function shoot(){if(S.cd>0)return;const w=WPN[weaponIndex];S.cd=w.kind==='sniper'?.62:w.kind==='deagle'?.34:.42;kick=1;snd(w.kind==='sniper'?190:w.kind==='deagle'?310:520,.14,w.kind==='knife'?'triangle':'square',.06);if(w.kind==='knife')weaponMotion=1;
- const sp=w.kind==='sniper'?.0015:w.kind==='deagle'?.018:.006,reach=w.kind==='knife'?2.7:120;rc.setFromCamera(new T.Vector2(rnd(-1,1)*sp/cam.aspect,rnd(-1,1)*sp),cam);
- const hits=rc.intersectObjects(S.en,true).filter(h=>h.distance<=reach);let end=rc.ray.at(reach,new T.Vector3());
- if(hits.length){let o=hits[0].object;while(o&&!o.userData.en)o=o.parent;end=hits[0].point;
-  if(o){const air=pos.y>0;burst(o.position,o.userData.col);sc.remove(o);S.en.splice(S.en.indexOf(o),1);S.k++;S.f=Math.min(100,S.f+(air?4.5:2));snd(880,.18,'triangle',.08);if(air)say('Воздушный выстрел!')}}
+function hitTarget(hit){let o=hit.object;while(o&&!o.userData.en)o=o.parent;if(!o)return false;const air=pos.y>0;burst(o.position,o.userData.col);sc.remove(o);S.en.splice(S.en.indexOf(o),1);S.k++;S.f=Math.min(100,S.f+(air?4.5:2));snd(880,.18,'triangle',.08);if(air)say('Воздушный выстрел!');return true}
+function shoot(){if(S.cd>0)return;const w=equipped();kick=1;
+ if(w.kind==='knife'){S.cd=.48;weaponMotion=1;snd(410,.12,'triangle',.045);rc.setFromCamera(new T.Vector2(0,0),cam);const hit=rc.intersectObjects(S.en,true).find(h=>h.distance<=2.65);if(hit)hitTarget(hit);return}
+ S.cd=w.kind==='sniper'?.62:.34;snd(w.kind==='sniper'?190:310,.14,'square',.06);const sp=w.kind==='sniper'?.0015:.018;rc.setFromCamera(new T.Vector2(rnd(-1,1)*sp/cam.aspect,rnd(-1,1)*sp),cam);
+ const hits=rc.intersectObjects(S.en,true).filter(h=>h.distance<=120);let end=rc.ray.at(120,new T.Vector3());
+ if(hits.length){end=hits[0].point;hitTarget(hits[0])}
  const mz=gun.localToWorld(new T.Vector3(0,0,-.9)),pa=tl.geometry.attributes.position;pa.setXYZ(0,mz.x,mz.y,mz.z);pa.setXYZ(1,end.x,end.y,end.z);pa.needsUpdate=true;tl.visible=true;tlT=.06}
 function accel(w,ws,ac,dt){const cur=vel.x*w.x+vel.z*w.z,add=ws-cur;if(add<=0)return;const a=Math.min(ac*ws*dt,add);vel.x+=w.x*a;vel.z+=w.z*a}
 let last=performance.now();
 function loop(n){requestAnimationFrame(loop);const dt=Math.min((n-last)/1000,.05);last=n;if(S&&alive&&locked)upd(dt);if(S)fx(dt);ren.render(sc,cam)}
-function upd(dt){S.t+=dt;S.cd-=dt;S.boost=Math.max(0,S.boost-dt);S.shake=Math.max(0,S.shake-dt*3);S.flash=Math.max(0,S.flash-dt*1.5);S.mt-=dt;if(S.mt<0)$('msg').textContent='';
+function upd(dt){const mode=S.mode;S.t+=dt;S.cd-=dt;S.boost=Math.max(0,S.boost-dt);S.shake=Math.max(0,S.shake-dt*3);S.flash=Math.max(0,S.flash-dt*1.5);S.mt-=dt;if(S.mt<0)$('msg').textContent='';if(mode==='bhop')streamBhop();
  const fw=new T.Vector3(-Math.sin(yaw),0,-Math.cos(yaw)),rt=new T.Vector3(Math.cos(yaw),0,-Math.sin(yaw));
  const w=fw.multiplyScalar((K.KeyW?1:0)-(K.KeyS?1:0)).add(rt.multiplyScalar((K.KeyD?1:0)-(K.KeyA?1:0)));if(w.lengthSq()>0)w.normalize();
- const prevY=pos.y;let floor=0;for(const b of bhopPads)if(Math.abs(pos.x-b.x)<b.sx/2&&Math.abs(pos.z-b.z)<b.sz/2)floor=Math.max(floor,b.y);
- let on=gameMode==='bhop'?pos.y<=floor+.035&&vel.y<=0:pos.y<=.001&&vel.y<=0;if(on&&K.Space){vel.y=gameMode==='bhop'?9:8;on=false;snd(500,.08,'sine',.04)}
- if(on){const sp=Math.hypot(vel.x,vel.z),fr=K.Space?.45:5.5;if(sp>0){const ns=Math.max(sp-Math.max(sp,3)*fr*dt,0)/sp;vel.x*=ns;vel.z*=ns}accel(w,gameMode==='bhop'?12:8.5,gameMode==='bhop'?16:10,dt)}else{vel.y-=(gameMode==='bhop'?20:22)*dt;accel(w,gameMode==='bhop'?2.4:1.6,gameMode==='bhop'?100:70,dt)}
- if(gameMode==='bhop'&&w.lengthSq()===0){const sp=Math.hypot(vel.x,vel.z);if(sp>0.01){const side=new T.Vector3(-vel.z,0,vel.x).normalize().multiplyScalar((K.KeyA?1:0)-(K.KeyD?1:0));accel(side,sp+2,22,dt)}}
- pos.addScaledVector(vel,dt);if(pos.y<floor&&vel.y<0&&prevY>=floor-.08){pos.y=floor;vel.y=0}
- if(gameMode==='bhop'&&pos.y < -14){const cp=bhopPads[Math.max(0,S.checkpoint)];pos.set(cp.x,cp.y+1.2,cp.z);vel.set(0,0,0);say('Падение! Возврат на платформу')}
- if(gameMode==='bhop'){for(let i=0;i<bhopPads.length;i++){const b=bhopPads[i];if(Math.abs(pos.x-b.x)<b.sx/2&&Math.abs(pos.z-b.z)<b.sz/2&&pos.y>=b.y){S.checkpoint=Math.max(S.checkpoint,i);if(i===bhopPads.length-1){alive=false;document.exitPointerLock();menu('Трасса пройдена!',`<p>Финиш за <b>${S.t.toFixed(2)} с</b>. Скорость на финише: <b>${(hs*3.6).toFixed(0)} км/ч</b>.</p>`,'Заново',()=>{reset();lock()})}}}}
- const rr=Math.hypot(pos.x,pos.z);if(rr>85){pos.x*=85/rr;pos.z*=85/rr}
+ const groundPad=mode==='bhop'?bhopPads.find(p=>Math.abs(pos.x-p.x)<p.sx/2+.24&&Math.abs(pos.z-p.z)<p.sz/2+.24&&pos.y<=p.y+.055&&pos.y>=p.y-.12):null;
+ let on=mode==='bhop'?!!groundPad&&vel.y<=0:pos.y<=.001&&vel.y<=0;if(on&&K.Space){vel.y=mode==='bhop'?9:8;on=false;snd(500,.08,'sine',.04)}
+ if(on){const sp=Math.hypot(vel.x,vel.z),fr=K.Space?.35:5.5;if(sp>0){const ns=Math.max(sp-Math.max(sp,3)*fr*dt,0)/sp;vel.x*=ns;vel.z*=ns}accel(w,mode==='bhop'?12:8.5,mode==='bhop'?16:10,dt)}else{vel.y-=(mode==='bhop'?20:22)*dt;accel(w,mode==='bhop'?2.4:1.6,mode==='bhop'?100:70,dt)}
+ if(mode==='bhop'&&w.lengthSq()===0){const sp=Math.hypot(vel.x,vel.z);if(sp>0.01){const side=new T.Vector3(-vel.z,0,vel.x).normalize().multiplyScalar((K.KeyA?1:0)-(K.KeyD?1:0));accel(side,sp+2,22,dt)}}
+ const stepCount=mode==='bhop'?Math.min(60,Math.max(1,Math.ceil(Math.max(Math.hypot(vel.x,vel.z),Math.abs(vel.y))*dt/.3))):1,step=dt/stepCount;let landed=null;
+ for(let n=0;n<stepCount;n++){const px=pos.x,py=pos.y,pz=pos.z;pos.x+=vel.x*step;pos.z+=vel.z*step;pos.y+=vel.y*step;
+  if(mode==='bhop'){for(const p of bhopPads){const overlapX=Math.abs(pos.x-p.x)<p.sx/2+.28,overlapZ=Math.abs(pos.z-p.z)<p.sz/2+.28;if(!overlapX||!overlapZ)continue;
+    if(vel.y<=0&&py>=p.y-.035&&pos.y<=p.y){pos.y=p.y;vel.y=0;landed=p;continue}
+    const bottom=p.y-.7,intersectsY=pos.y<p.y-.035&&pos.y+1.7>bottom;if(!intersectsY)continue;
+    const penX=p.sx/2+.28-Math.abs(pos.x-p.x),penZ=p.sz/2+.28-Math.abs(pos.z-p.z);
+    if(Math.abs(pos.x-p.x)<p.sx/2+.28&&Math.abs(px-p.x)>=p.sx/2+.28){pos.x=p.x+Math.sign(px-p.x)*(p.sx/2+.29);vel.x=0}
+    else if(Math.abs(pos.z-p.z)<p.sz/2+.28&&Math.abs(pz-p.z)>=p.sz/2+.28){pos.z=p.z+Math.sign(pz-p.z)*(p.sz/2+.29);vel.z=0}
+    else if(penX<penZ){pos.x=p.x+Math.sign(pos.x-p.x)*(p.sx/2+.29);vel.x=0}else{pos.z=p.z+Math.sign(pos.z-p.z)*(p.sz/2+.29);vel.z=0}
+   }}else if(pos.y<0){pos.y=0;vel.y=0}}
+ if(landed){S.checkpoint=landed.id;S.checkpointPos={x:landed.x,y:landed.y,z:landed.z}}
+ if(mode==='bhop'){streamBhop();if(pos.y < -14){rebuildBhopAtCheckpoint();pos.set(S.checkpointPos.x,S.checkpointPos.y,S.checkpointPos.z);vel.set(0,0,0);say('Возврат на последнюю платформу')}}
+ if(mode!=='bhop'){const rr=Math.hypot(pos.x,pos.z);if(rr>85){pos.x*=85/rr;pos.z*=85/rr}}
  hs=Math.hypot(vel.x,vel.z);
  if(fire)shoot();
  // enemies
  const hold=S.cl&&K.KeyE&&Math.hypot(pos.x-stump.position.x,pos.z-stump.position.z)<5;
- S.sp-=dt;if(gameMode==='trip'&&S.sp<=0&&S.en.length<24){S.sp=(1.9-Math.min(S.t/150,1))*(hold?.5:1)*rnd(.7,1.2);const e=mkEnemy(),a=rnd(0,6.283),r=rnd(28,42);e.position.set(pos.x+Math.cos(a)*r,1.5,pos.z+Math.sin(a)*r);e.userData.sp+=S.t*.012;sc.add(e);S.en.push(e)}
+ S.sp-=dt;if(mode==='trip'&&S.sp<=0&&S.en.length<24){S.sp=(1.9-Math.min(S.t/150,1))*(hold?.5:1)*rnd(.7,1.2);const e=mkEnemy(),a=rnd(0,6.283),r=rnd(28,42);e.position.set(pos.x+Math.cos(a)*r,1.5,pos.z+Math.sin(a)*r);e.userData.sp+=S.t*.012;sc.add(e);S.en.push(e)}
  const sl=S.boost>0?.45:1;
  for(let i=S.en.length-1;i>=0;i--){const e=S.en[i],d=new T.Vector3(pos.x-e.position.x,0,pos.z-e.position.z),L=d.length();d.normalize();
   e.position.addScaledVector(d,e.userData.sp*sl*dt);e.position.y=1.5+Math.sin(S.t*3+e.userData.ph)*.5;e.lookAt(cam.position);{const bm=e.children[0];bm.scale.setScalar(1+Math.sin(S.t*6+e.userData.ph)*.12*(1+(1-S.f/100)*2));bm.material.color.setHSL((S.t*.25+e.userData.ph/6.3)%1,.9,.55);bm.material.emissive.copy(bm.material.color)}
   if(L<1.8){burst(e.position,e.userData.col);sc.remove(e);S.en.splice(i,1);S.f-=12;S.shake=1;snd(80,.4,'sawtooth',.12)}}
  // clarity object
- if(gameMode==='trip'&&!S.cl){S.nc-=dt;if(S.nc<=0){const a=rnd(0,6.283),r=rnd(22,50);stump.position.set(pos.x+Math.cos(a)*r,0,pos.z+Math.sin(a)*r);sc.add(stump);S.cl=true;S.life=28;S.nc=rnd(14,22);say('Луч! Объект Ясности. Зажми E рядом')}}
- else{S.life-=dt;if(S.life<=0){S.cl=false;sc.remove(stump);S.hold=0;say('Якорь растворился...')}}
+ if(mode==='trip'){if(!S.cl){S.nc-=dt;if(S.nc<=0){const a=rnd(0,6.283),r=rnd(22,50);stump.position.set(pos.x+Math.cos(a)*r,0,pos.z+Math.sin(a)*r);sc.add(stump);S.cl=true;S.life=28;S.nc=rnd(14,22);say('Луч! Объект Ясности. Зажми E рядом')}}
+  else{S.life-=dt;if(S.life<=0){S.cl=false;sc.remove(stump);S.hold=0;say('Якорь растворился...')}}}
  if(S.cl){if(hold){S.hold+=dt/3.2;S.f-=3.5*dt;S.shake=Math.max(S.shake,.45);
    if(S.hold>=1){S.f=Math.min(100,S.f+45);S.boost=7;S.cl=false;sc.remove(stump);S.hold=0;S.flash=1;[523,659,784,1047].forEach((f,i)=>setTimeout(()=>snd(f,1.3,'sine',.08),i*90));say('Прорыв. Фокус вернулся')}}
   else S.hold=Math.max(0,S.hold-dt*.6)}
  if(S.f<35){S.tick-=dt;if(S.tick<=0){S.tick=.7;snd(1200,.04,'square',.04)}}
- if(gameMode==='trip'&&S.f<=0){alive=false;document.exitPointerLock();menu('Фокус потерян',`<p>Ты продержался <b>${S.t.toFixed(0)} с</b> и развеял <b>${S.k}</b> галлюцинаций.</p>`,'Ещё раз',()=>{reset();lock()})}}
+ if(mode==='trip'&&S.f<=0){alive=false;document.exitPointerLock();menu('Фокус потерян',`<p>Ты продержался <b>${S.t.toFixed(0)} с</b> и развеял <b>${S.k}</b> галлюцинаций.</p>`,'Ещё раз',()=>{reset();lock()})}}
 function fx(dt){const q=1-Math.max(0,S.f)/100,t=performance.now()/1000;
  gm.uniforms.t.value=t;gm.uniforms.q.value=q;
  sc.background.setHSL((t*.03+q*.2)%1,.65,.22+q*.06);sc.fog.color.copy(sc.background);
@@ -199,7 +256,7 @@ function fx(dt){const q=1-Math.max(0,S.f)/100,t=performance.now()/1000;
  $('fl').style.opacity=S.flash*.8;
  $('fill').style.width=Math.max(0,S.f)+'%';$('fill').style.background=`hsl(${S.f*1.2},90%,55%)`;
  let extra='';if(S.cl)extra=`   |   Пень: ${Math.hypot(pos.x-stump.position.x,pos.z-stump.position.z).toFixed(0)} м`;if(S.boost>0)extra+=`   |   Ясность ${S.boost.toFixed(0)} с`;
- $('bar').style.display=gameMode==='bhop'?'none':'block';$('st').textContent=`${gameMode==='bhop'?`Bhop · чекпоинт ${S.checkpoint}/${bhopPads.length-1}`:`Фокус ${Math.max(0,S.f).toFixed(0)} · Убито ${S.k}`}  |  ${WPN[weaponIndex].name}  |  ${(hs*3.6).toFixed(0)} км/ч  |  ${S.t.toFixed(1)} с${extra}`;
+ $('bar').style.display=S.mode==='bhop'?'none':'block';const modeStat=S.mode==='bhop'?`Bhop · чекпоинт ${S.checkpoint} · ${bhopPads.length} чанков`:`Фокус ${Math.max(0,S.f).toFixed(0)} · Убито ${S.k}`;$('st').innerHTML=`<span class="hudstat">${modeStat}</span><span class="hudsep">|</span><span class="hudstat dim">${equipped().name}</span><span class="hudspeed">${hs.toFixed(1)} UPS</span><span class="hudstat dim">${S.t.toFixed(1)} с</span>${extra?`<span class="hudstat dim">${extra.replace(/^\s*\|\s*/, '· ')}</span>`:''}`;
  $('hb').style.display=S.hold>0?'block':'none';$('hf').style.width=S.hold*100+'%'}
 requestAnimationFrame(loop);
 </script></body></html>
