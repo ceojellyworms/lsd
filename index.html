@@ -32,6 +32,7 @@ button{margin-top:14px;padding:12px 28px;font-size:16px;font-weight:750;border:0
 .vitals{position:fixed;left:20px;bottom:20px;width:min(270px,42vw);padding:10px 12px;border:1px solid #ffffff1c;border-left:2px solid #75efbd;border-radius:8px;background:linear-gradient(90deg,#08120ff0,#08120fa8);box-shadow:0 5px 22px #0005;backdrop-filter:blur(7px);pointer-events:none}
 .vitalhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;color:#a9c3ba;font-size:10px;font-weight:800;letter-spacing:.17em}.vitalvalue{font-size:17px;letter-spacing:0;color:#f4fff9;font-variant-numeric:tabular-nums}.vitalbar{height:4px;background:#ffffff20;border-radius:5px;overflow:hidden}.vitalbar i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#29dca5,#b5fa79);box-shadow:0 0 12px #54ffc580}.vitalfoot{display:flex;gap:14px;margin-top:7px;font-size:10px;color:#a9c3ba}.vitalfoot b{color:#f2f8f4;font-size:12px;margin-left:4px}
 .weaponhud{position:fixed;right:20px;bottom:20px;display:flex;gap:6px;align-items:flex-end;pointer-events:none}
+.weaponhud:before{content:'F  ·  ОСМОТР';position:absolute;right:0;bottom:100%;margin-bottom:7px;padding:4px 8px;border:1px solid #ffffff20;border-radius:5px;background:#080d0cbb;color:#d5e7df;font-size:9px;font-weight:800;letter-spacing:.12em;text-shadow:0 1px 4px #000}
 .wepslot{min-width:75px;padding:8px 10px 7px;border:1px solid #ffffff1b;border-radius:7px;background:linear-gradient(145deg,#10151bd9,#070a0fce);box-shadow:0 5px 18px #0006;backdrop-filter:blur(6px);color:#aab5b4}.wepslot.active{border-color:#8effce99;background:linear-gradient(145deg,#14342dcf,#081411e8);box-shadow:0 0 18px #47ffc329;color:#f3fff8;transform:translateY(-4px)}.wepnum{display:inline-grid;place-items:center;width:17px;height:17px;margin-right:5px;border-radius:4px;background:#ffffff17;font-size:10px;font-weight:800;color:#c9d7d3}.wepname{font-size:10px;font-weight:700;white-space:nowrap}.wepmeta{margin-top:5px;font-size:9px;color:#91aaa4;white-space:nowrap}.wepslot.active .wepmeta{color:#8bf4c5}
 .matchhud,.vitals,.weaponhud,#ch,#msg{z-index:4}
 #scope{position:fixed;inset:0;z-index:3;display:none;pointer-events:none;background:radial-gradient(circle at center,transparent 0 25%,rgba(0,0,0,.97) 25.25% 100%)}#scope:before{content:"";position:absolute;left:50%;top:50%;width:min(36vw,52vh);aspect-ratio:1;transform:translate(-50%,-50%);border:1px solid #d4e2df88;border-radius:50%;box-shadow:0 0 0 2px #0008,inset 0 0 18px #0008}#scope i{position:absolute;left:50%;top:50%;background:#141b1bd9;transform:translate(-50%,-50%)}#scope i:nth-child(1){width:1px;height:36vh}#scope i:nth-child(2){height:1px;width:36vw}#scope i:nth-child(3){width:5px;height:5px;border:1px solid #101515;border-radius:50%;background:#b5d9cf}
@@ -46,7 +47,8 @@ button{margin-top:14px;padding:12px 28px;font-size:16px;font-weight:750;border:0
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const T=THREE,$=id=>document.getElementById(id),rnd=(a,b)=>a+Math.random()*(b-a);
-const ST=Object.assign({sens:1,vol:.7,mus:.6,fov:80,trip:1},(()=>{try{return JSON.parse(localStorage.getItem('bs3')||'{}')}catch(e){return{}}})());
+const ST=Object.assign({sens:1,vol:.7,mus:.6,fov:80,trip:1.5},(()=>{try{return JSON.parse(localStorage.getItem('bs3')||'{}')}catch(e){return{}}})());
+try{if(localStorage.getItem('bs3_trip_default_v2')!=='1'){ST.trip=1.5;save();localStorage.setItem('bs3_trip_default_v2','1')}}catch(e){}
 function save(){try{localStorage.setItem('bs3',JSON.stringify(ST))}catch(e){}}
 const KNIVES=[{name:'Керамбит',color:0xff4fb8},{name:'Бабочка',color:0x9e7bff},{name:'M9 Bayonet',color:0x91ffd1}];
 const WPN=[{name:'Снайперка',kind:'sniper',color:0x42e8ff},{name:'Дигл',kind:'deagle',color:0xffc45e}];
@@ -188,7 +190,7 @@ document.addEventListener('pointerlockchange',()=>{locked=document.pointerLockEl
 document.addEventListener('pointerlockerror',()=>{$('box').insertAdjacentHTML('beforeend','<p>Браузер не дал захватить мышь. Открой игру по ссылке в отдельной вкладке.</p>')});
 document.addEventListener('mousemove',e=>{if(!locked)return;yaw-=e.movementX*.0022*ST.sens;pitch=Math.max(-1.5,Math.min(1.5,pitch-e.movementY*.0022*ST.sens))});
 function setWeaponSlot(slot){weaponIndex=((slot%3)+3)%3;buildWeapon();if(weaponIndex!==0)aiming=false;inspectTimer=0}
-addEventListener('keydown',e=>{if(e.code==='Space')e.preventDefault();if(e.repeat||!locked)return;if(e.code==='Digit1')setWeaponSlot(0);if(e.code==='Digit2')setWeaponSlot(1);if(e.code==='Digit3')setWeaponSlot(2);if(e.code==='KeyF'){aiming=false;inspectTimer=1.35;snd(520,.07,'triangle',.035)}});
+addEventListener('keydown',e=>{if(e.code==='Space')e.preventDefault();if(e.repeat||!locked)return;if(e.code==='Digit1')setWeaponSlot(0);if(e.code==='Digit2')setWeaponSlot(1);if(e.code==='Digit3')setWeaponSlot(2);if(e.code==='KeyF'){aiming=false;inspectTimer=1.8;say('Осмотр оружия');snd(520,.07,'triangle',.035)}});
 addEventListener('mousedown',e=>{if(!locked)return;if(e.button===0)fire=true;if(e.button===2&&equipped().kind==='sniper'){aiming=true;inspectTimer=0}if(e.button===2)e.preventDefault()});
 addEventListener('mouseup',e=>{if(e.button===0)fire=false;if(e.button===2)aiming=false});
 addEventListener('contextmenu',e=>e.preventDefault());
@@ -260,7 +262,7 @@ function fx(dt){const q=1-Math.max(0,S.f)/100,t=performance.now()/1000;
  cam.rotation.set(pitch+rnd(-1,1)*q*.01,yaw,Math.sin(t*1.3)*q*.06+Math.sin(t*.7)*.015*ST.trip+rnd(-1,1)*S.shake*.03);
  const isScoped=aiming&&equipped().kind==='sniper',targetFov=isScoped?22:ST.fov+Math.min(hs,25)*.5+Math.sin(t*2)*(q*7+tp*1.5);cam.fov+=(targetFov-cam.fov)*Math.min(1,dt*16);cam.updateProjectionMatrix();
  pl.position.set(pos.x,3,pos.z);pl.color.setHSL((t*.1)%1,1,.6);
- kick=Math.max(0,kick-dt*8);weaponMotion=Math.max(0,weaponMotion-dt*5);inspectTimer=Math.max(0,inspectTimer-dt);const inspect=inspectTimer>0?Math.sin((1-inspectTimer/1.35)*Math.PI):0;gun.position.set(.26+inspect*.2,-.24+inspect*.05,-.55+kick*.1+weaponMotion*.15);gun.rotation.x=kick*.08-weaponMotion*.9-inspect*.24;gun.rotation.y=Math.sin(weaponMotion*Math.PI)*.3+inspect*(equipped().kind==='knife'?.95:.52);gun.rotation.z=-inspect*.3;
+ kick=Math.max(0,kick-dt*8);weaponMotion=Math.max(0,weaponMotion-dt*5);inspectTimer=Math.max(0,inspectTimer-dt);const inspect=inspectTimer>0?Math.sin((1-inspectTimer/1.8)*Math.PI):0;gun.position.set(.26+inspect*.32,-.24+inspect*.08,-.55+kick*.1+weaponMotion*.15);gun.rotation.x=kick*.08-weaponMotion*.9-inspect*.38;gun.rotation.y=Math.sin(weaponMotion*Math.PI)*.3+inspect*(equipped().kind==='knife'?1.3:.9);gun.rotation.z=-inspect*.55;
  if(tlT>0){tlT-=dt;if(tlT<=0)tl.visible=false}
  for(let i=parts.length-1;i>=0;i--){const m=parts[i],u=m.userData;u.v.y-=15*dt;m.position.addScaledVector(u.v,dt);u.l-=dt;m.scale.setScalar(Math.max(u.l,.01));if(u.l<=0){sc.remove(m);m.material.dispose();parts.splice(i,1)}}
  const r=spread()*innerHeight/2,d=Math.max(16,r*2);$('ch').style.display=isScoped?'none':'block';$('ch').style.transform=`translate(-50%,-50%) scale(${Math.min(4,d/20)})`;$('scope').style.display=isScoped?'block':'none';
