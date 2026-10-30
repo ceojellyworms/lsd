@@ -49,13 +49,13 @@ button{margin-top:14px;padding:12px 28px;font-size:16px;font-weight:750;border:0
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const T=THREE,$=id=>document.getElementById(id),rnd=(a,b)=>a+Math.random()*(b-a);
-const ST=Object.assign({sens:1,vol:.7,mus:.6,fov:80,trip:1.5},(()=>{try{return JSON.parse(localStorage.getItem('bs3')||'{}')}catch(e){return{}}})());
+const ST=Object.assign({sens:1,vol:.7,mus:.6,fov:80,trip:1.5,calm:65},(()=>{try{return JSON.parse(localStorage.getItem('bs3')||'{}')}catch(e){return{}}})());ST.calm=Math.max(0,Math.min(100,Number(ST.calm)||0));
 try{if(localStorage.getItem('bs3_trip_default_v2')!=='1'){ST.trip=1.5;save();localStorage.setItem('bs3_trip_default_v2','1')}}catch(e){}
 function save(){try{localStorage.setItem('bs3',JSON.stringify(ST))}catch(e){}}
 const KNIVES=[{name:'Керамбит',color:0xff4fb8},{name:'Бабочка',color:0x9e7bff},{name:'M9 Bayonet',color:0x91ffd1}];
 const WPN=[{name:'Снайперка',kind:'sniper',color:0x42e8ff},{name:'Дигл',kind:'deagle',color:0xffc45e}];
 let gameMode='trip',weaponIndex=0,knifeIndex=0;
-const SD=[['sens','Чувствительность мыши',.2,3,.05],['vol','Громкость',0,1,.02],['mus','Музыка',0,1,.02],['fov','Угол обзора (FOV)',60,110,1],['trip','Сила трипа',0,2,.05]];
+const SD=[['sens','Чувствительность мыши',.2,3,.05],['vol','Громкость',0,1,.02],['mus','Музыка',0,1,.02],['fov','Угол обзора (FOV)',60,110,1],['trip','Сила трипа',0,2,.05],['calm','Фокус прогулки · 0 трип / 100 спокойно',0,100,1]];
 let MG,MB;
 const ren=new T.WebGLRenderer({antialias:true});ren.setPixelRatio(Math.min(devicePixelRatio,2));document.body.prepend(ren.domElement);
 const sc=new T.Scene(),cam=new T.PerspectiveCamera(80,1,.1,400);cam.rotation.order='YXZ';sc.add(cam);
@@ -105,7 +105,7 @@ const spores=new T.Points(pgeo,new T.PointsMaterial({size:.8,map:new T.CanvasTex
 // rainbow arcs
 const rg=new T.Group();for(let i=0;i<5;i++){const r=new T.Mesh(new T.TorusGeometry(70+i*7,2.4,8,64,Math.PI),new T.MeshBasicMaterial({color:hc(i/5),fog:false}));r.position.set(0,-4,-150);rg.add(r)}sc.add(rg);
 // forest
-const deco=[],mats=[];
+const deco=[],mats=[],treeColliders=[];
 for(let i=0;i<110;i++){const g=new T.Group(),h=Math.random(),r=rnd(10,95),a=rnd(0,6.283),k=i%3;
  const M=(c,e)=>{const m=new T.MeshLambertMaterial({color:c,emissive:c.clone().multiplyScalar(e||.2),flatShading:true}),o={};c.getHSL(o);mats.push({m,h:o.h,s:o.s,l:o.l,e:e||.2});return m};
  if(k==0){const H=rnd(5,10);const tr=new T.Mesh(new T.CylinderGeometry(.3,.55,H,6),M(hc(h+.1).multiplyScalar(.5),0));tr.position.y=H/2;g.add(tr);
@@ -113,11 +113,21 @@ for(let i=0;i<110;i++){const g=new T.Group(),h=Math.random(),r=rnd(10,95),a=rnd(
  else if(k==1){const H=rnd(2,5);const s=new T.Mesh(new T.CylinderGeometry(.35,.5,H,7),M(new T.Color(0xf4e8ff),.2));s.position.y=H/2;g.add(s);
   const cp=new T.Mesh(new T.SphereGeometry(H*.8,12,8,0,6.283,0,1.57),M(hc(h),.35));cp.position.y=H;g.add(cp)}
  else{const H=rnd(3,8);const cr=new T.Mesh(new T.OctahedronGeometry(1,0),M(hc(h+.5),.6));cr.scale.set(1,H/1.5,1);cr.position.y=H/1.5;g.add(cr)}
- g.position.set(Math.cos(a)*r,0,Math.sin(a)*r);g.userData={p:rnd(0,6),k};deco.push(g);sc.add(g)}
+ g.position.set(Math.cos(a)*r,0,Math.sin(a)*r);g.userData={p:rnd(0,6),k};deco.push(g);sc.add(g);if(k===0)treeColliders.push({x:g.position.x,z:g.position.z,r:.82})}
+const freeMap=new T.Group(),freeTiles=new Map(),freeColliders=[],FREE_SIZE=56,freeGroundGeo=new T.PlaneGeometry(FREE_SIZE,FREE_SIZE),freeGroundMat=new T.MeshStandardMaterial({color:0x293a32,roughness:1}),freeBarkMat=new T.MeshStandardMaterial({color:0x47352e,roughness:1}),freeLeafMat=new T.MeshStandardMaterial({color:0x315847,roughness:.9});sc.add(freeMap);
+const freeTrunkGeo=new T.CylinderGeometry(.28,.48,5.8,7),freeLeafGeo=new T.ConeGeometry(2.9,5.2,7);
+function streamFreeForest(force=false){if(!S||S.mode!=='free')return;const cx=Math.floor(pos.x/FREE_SIZE),cz=Math.floor(pos.z/FREE_SIZE),center=`${cx},${cz}`;if(!force&&freeMap.userData.center===center)return;freeMap.userData.center=center;
+ for(let x=cx-2;x<=cx+2;x++)for(let z=cz-2;z<=cz+2;z++){const key=`${x},${z}`;if(freeTiles.has(key))continue;const group=new T.Group(),floor=new T.Mesh(freeGroundGeo,freeGroundMat);floor.rotation.x=-Math.PI/2;floor.position.set(x*FREE_SIZE-FREE_SIZE/2,0,z*FREE_SIZE-FREE_SIZE/2);floor.position.x+=FREE_SIZE/2;floor.position.z+=FREE_SIZE/2;floor.receiveShadow=true;group.add(floor);let seed=((x*73856093)^(z*19349663))>>>0;const rand=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296};const count=4+Math.floor(rand()*4);
+  for(let i=0;i<count;i++){const tx=(x+(rand()-.5)*.82)*FREE_SIZE,tz=(z+(rand()-.5)*.82)*FREE_SIZE;if(Math.hypot(tx-pos.x,tz-pos.z)<6)continue;const tree=new T.Group(),H=5+rand()*3,tr=new T.Mesh(freeTrunkGeo,freeBarkMat);tr.scale.y=H/5.8;tr.position.y=H/2;tree.add(tr);for(let j=0;j<3;j++){const leaves=new T.Mesh(freeLeafGeo,freeLeafMat);leaves.scale.setScalar(1-j*.16);leaves.position.y=H*.55+j*1.7;tree.add(leaves)}tree.position.set(tx,0,tz);group.add(tree);freeColliders.push({x:tx,z:tz,r:.9,key})}
+  freeMap.add(group);freeTiles.set(key,group)}
+ for(const [key,g] of freeTiles){const [x,z]=key.split(',').map(Number);if(Math.abs(x-cx)>2||Math.abs(z-cz)>2){freeMap.remove(g);freeTiles.delete(key);for(let i=freeColliders.length-1;i>=0;i--)if(freeColliders[i].key===key)freeColliders.splice(i,1)}}
+}
+const arenaBoundary=new T.Group(),boundaryMat=new T.MeshBasicMaterial({color:0xff416d}),boundaryGlow=new T.MeshBasicMaterial({color:0xffc454});
+{const low=new T.Mesh(new T.TorusGeometry(84.2,.22,8,128),boundaryMat),high=new T.Mesh(new T.TorusGeometry(84.2,.1,6,128),boundaryGlow);low.rotation.x=high.rotation.x=Math.PI/2;low.position.y=.08;high.position.y=6.5;arenaBoundary.add(low,high);for(let i=0;i<32;i++){const a=i*Math.PI*2/32,p=new T.Mesh(new T.CylinderGeometry(.14,.25,6.5,8),i%2?boundaryMat:boundaryGlow);p.position.set(Math.cos(a)*84.2,3.25,Math.sin(a)*84.2);arenaBoundary.add(p)}}sc.add(arenaBoundary);arenaBoundary.visible=false;
 // Stylized first-person weapon, rebuilt from clean geometric parts for each menu selection.
-const gun=new T.Group();gun.position.set(.26,-.24,-.55);cam.add(gun);let weaponMotion=0;
+const gun=new T.Group();gun.position.set(.26,-.24,-.55);cam.add(gun);let weaponMotion=0,knifeRig=null,knifeFlipA=null,knifeFlipB=null;
 function equipped(){return weaponIndex===2?{...KNIVES[knifeIndex],kind:'knife'}:WPN[weaponIndex]}
-function buildWeapon(){while(gun.children.length){const o=gun.children.pop();o.geometry?.dispose();if(Array.isArray(o.material))o.material.forEach(m=>m.dispose());else o.material?.dispose()}
+function buildWeapon(){gun.traverse(o=>{if(o.isMesh){o.geometry?.dispose();if(Array.isArray(o.material))o.material.forEach(m=>m.dispose());else o.material?.dispose()}});gun.clear();knifeRig=knifeFlipA=knifeFlipB=null;
  const w=equipped(),metal=new T.MeshStandardMaterial({color:0x292b38,metalness:.9,roughness:.2}),accent=new T.MeshStandardMaterial({color:w.color,emissive:w.color,emissiveIntensity:.38,metalness:.68,roughness:.2}),grip=new T.MeshStandardMaterial({color:0x171622,roughness:.68});
  const add=(geo,mat,x,y,z,rx=0,ry=0,rz=0)=>{const m=new T.Mesh(geo,mat);m.position.set(x,y,z);m.rotation.set(rx,ry,rz);gun.add(m);return m};
  const profile=(pts,mat,depth,x=0,y=0,z=0)=>{const s=new T.Shape();s.moveTo(pts[0][0],pts[0][1]);for(const p of pts.slice(1))s.lineTo(p[0],p[1]);s.closePath();return add(new T.ExtrudeGeometry(s,{depth,bevelEnabled:true,bevelSegments:2,steps:1,bevelSize:.012,bevelThickness:.012}),mat,x,y,z)};
@@ -141,17 +151,36 @@ function buildWeapon(){while(gun.children.length){const o=gun.children.pop();o.g
   add(new T.BoxGeometry(.035,.08,.06),metal,0,.275,.015);add(new T.BoxGeometry(.07,.055,.07),accent,0,.055,.19);
   for(const sx of[-1,1]){const screw=add(new T.CylinderGeometry(.018,.018,.012,12),accent,sx*.079,-.18,.16,Math.PI/2);screw.rotation.z=.2}
  }else{
-  const kar=w.name==='Керамбит',butter=w.name==='Бабочка',bladeShape=new T.Shape();
-  if(kar){bladeShape.moveTo(-.075,-.12);bladeShape.quadraticCurveTo(.0,-.31,.13,-.29);bladeShape.quadraticCurveTo(.29,-.27,.31,-.12);bladeShape.lineTo(.18,-.19);bladeShape.quadraticCurveTo(.13,-.21,.11,-.13);bladeShape.lineTo(.065,.36);bladeShape.quadraticCurveTo(0,.47,-.035,.35);bladeShape.closePath()}
-  else{bladeShape.moveTo(-.09,-.16);bladeShape.lineTo(-.12,.08);bladeShape.lineTo(-.07,.31);bladeShape.lineTo(0,.46);bladeShape.lineTo(.07,.31);bladeShape.lineTo(.12,.08);bladeShape.lineTo(.09,-.16);bladeShape.closePath()}
-  const bladeMat=new T.MeshStandardMaterial({color:0xc6e2f4,metalness:.96,roughness:.14,emissive:w.color,emissiveIntensity:.08,side:T.DoubleSide});
-  const blade=add(new T.ExtrudeGeometry(bladeShape,{depth:.035,bevelEnabled:true,bevelSegments:2,steps:1,bevelSize:.012,bevelThickness:.012}),bladeMat,0,.18,-.36);
-  const fuller=add(new T.BoxGeometry(.024,.35,.009),accent,0,.3,-.318);fuller.rotation.z=kar?-.12:0;
-  if(butter){blade.position.x=-.075;blade.rotation.z=-.08;const wing=blade.clone();wing.position.x=.075;wing.rotation.z=.08;gun.add(wing);blade.scale.x=-1;add(new T.CylinderGeometry(.052,.052,.09,16),accent,0,.025,-.17,Math.PI/2)}
-  else add(new T.BoxGeometry(.045,.3,.045),accent,0,.33,-.31);
-  add(new T.BoxGeometry(.13,.22,.085),metal,0,-.12,-.1,.12);add(new T.BoxGeometry(.105,.3,.075),grip,0,-.31,-.08,.18);add(new T.BoxGeometry(.12,.035,.083),accent,0,-.32,-.08,.18);
-  for(let i=0;i<4;i++)add(new T.BoxGeometry(.075,.012,.083),metal,0,-.22-i*.048,-.08,.18);
-  add(new T.TorusGeometry(kar?.105:.075,.018,8,22),accent,0,-.47,-.06,Math.PI/2);add(new T.CylinderGeometry(.028,.028,.12,10),metal,0,-.12,-.1,Math.PI/2);
+  const kar=w.name==='Керамбит',butter=w.name==='Бабочка',bladeMat=new T.MeshStandardMaterial({color:0xd5e2ed,metalness:.96,roughness:.16,emissive:w.color,emissiveIntensity:.055,side:T.DoubleSide}),edgeMat=new T.MeshStandardMaterial({color:0xf5fbff,metalness:.92,roughness:.12});
+  knifeRig=new T.Group();knifeRig.rotation.z=-.72;knifeRig.position.set(0,-.08,-.14);gun.add(knifeRig);
+  const kg=(g,m,p,x,y,z,rx=0,ry=0,rz=0)=>{const o=new T.Mesh(g,m);o.position.set(x,y,z);o.rotation.set(rx,ry,rz);p.add(o);return o};
+  const kshape=(points,depth,p,mat,z=-.025)=>{const s=new T.Shape();s.moveTo(points[0][0],points[0][1]);for(const a of points.slice(1))s.quadraticCurveTo(a[0],a[1],a[2],a[3]);s.closePath();return kg(new T.ExtrudeGeometry(s,{depth,bevelEnabled:true,bevelSegments:3,steps:1,bevelSize:.014,bevelThickness:.014}),mat,p,0,0,z)};
+  const rivet=(p,x,y,z)=>kg(new T.CylinderGeometry(.024,.024,.018,16),edgeMat,p,x,y,z,Math.PI/2);
+  if(kar){
+   const body=new T.Group();body.position.y=.36;knifeRig.position.y=-.44;knifeRig.add(body);
+   kshape([[-.105,-.34,-.16,-.29],[-.13,-.16,-.105,.03],[-.08,.09,.045,.08],[.055,.02,.09,-.07],[.075,-.25,.035,-.31]],.095,body,grip,-.052);
+   kg(new T.TorusGeometry(.13,.032,12,32),accent,body,0,-.36,-.005,0,0,Math.PI/2);
+   kg(new T.TorusGeometry(.088,.011,8,28),metal,body,0,-.36,.052,0,0,Math.PI/2);
+   const claw=new T.Shape();claw.moveTo(-.045,-.08);claw.quadraticCurveTo(-.18,.04,-.105,.21);claw.lineTo(.105,.62);claw.quadraticCurveTo(.17,.76,.31,.73);claw.quadraticCurveTo(.48,.67,.36,.52);claw.lineTo(.27,.42);claw.quadraticCurveTo(.21,.38,.17,.46);claw.lineTo(.09,.08);claw.quadraticCurveTo(.04,-.03,-.045,-.08);claw.closePath();
+   kg(new T.ExtrudeGeometry(claw,{depth:.045,bevelEnabled:true,bevelSegments:3,steps:1,bevelSize:.014,bevelThickness:.012}),bladeMat,body,0,0,-.024);
+   const spine=new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3([new T.Vector3(-.055,.02,.004),new T.Vector3(-.105,.2,.004),new T.Vector3(.075,.55,.004),new T.Vector3(.23,.69,.004)]),24,.012,6,false),edgeMat);body.add(spine);
+   kg(new T.BoxGeometry(.035,.17,.12),metal,body,0,-.08,0,.12);rivet(body,0,-.2,.058);rivet(body,0,-.285,.058);knifeRig.userData.kind='karambit';
+  }else if(butter){
+   const blade=new T.Shape();blade.moveTo(-.115,.04);blade.lineTo(-.105,.28);blade.lineTo(-.075,.52);blade.quadraticCurveTo(-.04,.68,.025,.79);blade.quadraticCurveTo(.09,.68,.14,.52);blade.lineTo(.15,.28);blade.lineTo(.13,.04);blade.closePath();
+   kg(new T.ExtrudeGeometry(blade,{depth:.04,bevelEnabled:true,bevelSegments:3,steps:1,bevelSize:.012,bevelThickness:.01}),bladeMat,knifeRig,0,0,-.025);
+   kg(new T.BoxGeometry(.026,.47,.012),accent,knifeRig,.015,.3,.012);
+   knifeFlipA=new T.Group();knifeFlipA.position.set(-.105,.02,-.025);knifeRig.add(knifeFlipA);knifeFlipB=new T.Group();knifeFlipB.position.set(.105,.02,.045);knifeRig.add(knifeFlipB);
+   for(const [idx,h] of [[0,knifeFlipA],[1,knifeFlipB]]){const x=idx===0?-.012:.012;kg(new T.BoxGeometry(.09,.49,.065),idx?metal:grip,h,x,-.245,0,.0,0,idx?-.035:.035);kg(new T.BoxGeometry(.094,.09,.07),accent,h,x,-.035,0);for(let i=0;i<4;i++)kg(new T.BoxGeometry(.092,.018,.071),metal,h,x,-.13-i*.075,0);rivet(h,x,-.035,.04);kg(new T.CylinderGeometry(.045,.045,.075,16),accent,h,x,-.02,0,Math.PI/2)}
+   knifeRig.userData.kind='butterfly';
+  }else{
+   const blade=new T.Shape();blade.moveTo(-.12,.035);blade.lineTo(-.16,.18);blade.lineTo(-.125,.48);blade.quadraticCurveTo(-.09,.76,-.015,.96);blade.quadraticCurveTo(.07,.82,.13,.53);blade.lineTo(.155,.18);blade.lineTo(.115,.035);blade.closePath();
+   kg(new T.ExtrudeGeometry(blade,{depth:.05,bevelEnabled:true,bevelSegments:3,steps:1,bevelSize:.014,bevelThickness:.012}),bladeMat,knifeRig,0,0,-.03);
+   kg(new T.BoxGeometry(.024,.68,.012),edgeMat,knifeRig,0,.48,.027);kg(new T.BoxGeometry(.12,.045,.014),metal,knifeRig,0,.42,.027);
+   kg(new T.BoxGeometry(.44,.075,.105),metal,knifeRig,0,.015,0,0,0,.02);kg(new T.BoxGeometry(.33,.39,.09),grip,knifeRig,0,-.19,0,0,0,.045);
+   for(let i=0;i<5;i++)kg(new T.BoxGeometry(.32,.018,.094),i%2?metal:accent,knifeRig,0,-.045-i*.064,.003,0,0,.045);
+   kg(new T.BoxGeometry(.35,.055,.1),metal,knifeRig,0,-.405,0);for(const x of[-.095,.095])rivet(knifeRig,x,-.14,.052);
+   knifeRig.userData.kind='bayonet';
+  }
  }
 }
 buildWeapon();
@@ -182,10 +211,10 @@ setInterval(()=>{if(!(S&&alive&&locked&&A))return;const q=1-Math.max(0,S.f)/100;
 function say(m){S.msg=m;S.mt=2.4;$('msg').textContent=m}
 function resetBhop(){for(const p of bhopPads)disposeBhopPad(p);bhopPads.length=0;bhopNextId=0;bhopNextZ=0;bhopLastX=0;bhopLastY=0;const p=addBhopPad(0,0,0,12,12,0);bhopNextId=1;bhopNextZ=-7;return p}
 function rebuildBhopAtCheckpoint(){const c=S.checkpointPos;for(const p of bhopPads)disposeBhopPad(p);bhopPads.length=0;bhopNextId=S.checkpoint+1;bhopNextZ=c.z-7;bhopLastX=c.x;bhopLastY=c.y-.055;addBhopPad(c.x,c.y-.055,c.z,9,9,S.checkpoint);streamBhop()}
-function reset(){if(S)S.en.forEach(e=>sc.remove(e));sc.remove(stump);const mode=gameMode;if(mode==='bhop')resetBhop();S={mode,f:100,t:0,k:0,en:[],cl:false,hold:0,boost:0,shake:0,sp:2,nc:10,tick:0,flash:0,cd:0,mt:0,life:0,msg:'',checkpoint:0,checkpointPos:{x:0,y:.055,z:0}};bhopMap.visible=mode==='bhop';ground.visible=mode!=='bhop';deco.forEach(o=>o.visible=mode!=='bhop');pos.set(0,mode==='bhop'?.055:0,0);vel.set(0,0,0);yaw=0;pitch=0;alive=true;$('msg').textContent='';if(mode==='bhop')say('Bhop park — держи пробел, стрейфуй A/D!')}
-function menu(t,txt,btn,fn){$('box').innerHTML=`<h1>${t}</h1>${txt}<div class="label">Режим игры</div><div class="choice"><button id="m_trip" class="${gameMode==='trip'?'active':''}">Радужный лес</button><button id="m_bhop" class="${gameMode==='bhop'?'active':''}">Bhop-парк</button></div><div class="label">Выбери нож · слот 3</div><div class="choice">${KNIVES.map((w,i)=>`<button data-knife="${i}" class="${knifeIndex===i?'active':''}">${w.name}</button>`).join('')}</div><div class="label">В игре: 1 · снайперка &nbsp; 2 · дигл &nbsp; 3 · выбранный нож</div><div id="set">${SD.map(([k,n,a,b,st])=>`<div class="row"><span>${n}</span><input type="range" id="s_${k}" min="${a}" max="${b}" step="${st}" value="${ST[k]}"></div>`).join('')}</div><button id="go">${btn}</button>`;$('ov').style.display='flex';$('go').onclick=fn;
- $('m_trip').onclick=()=>{gameMode='trip';menu(t,txt,btn,fn)};$('m_bhop').onclick=()=>{gameMode='bhop';menu(t,txt,btn,fn)};document.querySelectorAll('[data-knife]').forEach(e=>e.onclick=()=>{knifeIndex=+e.dataset.knife;if(weaponIndex===2)buildWeapon();menu(t,txt,btn,fn)});
- SD.forEach(([k])=>{const e=$('s_'+k);e.oninput=()=>{ST[k]=+e.value;save();if(MG)MG.gain.value=ST.vol;if(MB)MB.gain.value=ST.mus}})}
+function reset(){if(S)S.en.forEach(e=>sc.remove(e));sc.remove(stump);const mode=gameMode;if(mode==='bhop')resetBhop();freeTiles.clear();freeColliders.length=0;freeMap.clear();freeMap.userData.center='';S={mode,f:mode==='free'?ST.calm:100,t:0,k:0,en:[],cl:false,hold:0,boost:0,shake:0,sp:2,nc:10,tick:0,flash:0,cd:0,mt:0,life:0,msg:'',checkpoint:0,checkpointPos:{x:0,y:.055,z:0}};bhopMap.visible=mode==='bhop';ground.visible=mode==='trip';freeMap.visible=mode==='free';arenaBoundary.visible=mode==='trip';deco.forEach(o=>o.visible=mode==='trip');pos.set(0,mode==='bhop'?.055:0,0);vel.set(0,0,0);yaw=0;pitch=0;alive=true;$('msg').textContent='';if(mode==='bhop')say('Bhop park — держи пробел, стрейфуй A/D!');if(mode==='free'){streamFreeForest(true);say('Свободная прогулка — фокус меняется в настройках')}}
+function menu(t,txt,btn,fn){$('box').innerHTML=`<h1>${t}</h1>${txt}<div class="label">Режим игры</div><div class="choice"><button id="m_trip" class="${gameMode==='trip'?'active':''}">Радужный лес</button><button id="m_bhop" class="${gameMode==='bhop'?'active':''}">Bhop-парк</button><button id="m_free" class="${gameMode==='free'?'active':''}">Свободный мир</button></div><div class="label">Выбери нож · слот 3</div><div class="choice">${KNIVES.map((w,i)=>`<button data-knife="${i}" class="${knifeIndex===i?'active':''}">${w.name}</button>`).join('')}</div><div class="label">В игре: 1 · снайперка &nbsp; 2 · дигл &nbsp; 3 · выбранный нож</div><div id="set">${SD.map(([k,n,a,b,st])=>`<div class="row"><span>${n}</span><input type="range" id="s_${k}" min="${a}" max="${b}" step="${st}" value="${ST[k]}"></div>`).join('')}</div><button id="go">${btn}</button>`;$('ov').style.display='flex';$('go').onclick=fn;
+ $('m_trip').onclick=()=>{gameMode='trip';menu(t,txt,btn,fn)};$('m_bhop').onclick=()=>{gameMode='bhop';menu(t,txt,btn,fn)};$('m_free').onclick=()=>{gameMode='free';menu(t,txt,btn,fn)};document.querySelectorAll('[data-knife]').forEach(e=>e.onclick=()=>{knifeIndex=+e.dataset.knife;if(weaponIndex===2)buildWeapon();menu(t,txt,btn,fn)});
+ SD.forEach(([k])=>{const e=$('s_'+k);e.oninput=()=>{ST[k]=+e.value;save();if(k==='calm'&&S?.mode==='free')S.f=ST.calm;if(MG)MG.gain.value=ST.vol;if(MB)MB.gain.value=ST.mus}})}
 function lock(){audio();if(touchDevice){locked=true;$('ov').style.display='none';$('touchui').style.display='block';return}ren.domElement.requestPointerLock()}
 function resume(){if(S&&S.mode!==gameMode)reset();lock()}
 document.addEventListener('pointerlockchange',()=>{locked=document.pointerLockElement===ren.domElement;if(!locked){aiming=false;fire=false}if(locked)$('ov').style.display='none';else if(alive)menu('Пауза','<p>Выбери режим, нож и настройки. При смене режима прогресс начнётся заново.</p>','Продолжить',resume)});
@@ -210,7 +239,7 @@ addEventListener('mouseup',e=>{if(e.button===0)fire=false;if(e.button===2)aiming
 addEventListener('contextmenu',e=>e.preventDefault());
 addEventListener('wheel',e=>{if(!locked)return;e.preventDefault();setWeaponSlot(weaponIndex+(e.deltaY>0?1:2))},{passive:false});
 addEventListener('blur',()=>{aiming=false;fire=false});
-menu('Бнихоп-Снайпер',`<p>Радужный лес, причудливые видения и психоделическая дымка. Развеивай существ, чтобы удержать фокус.</p>
+menu('Бнихоп-Снайпер',`<p><b>Радужный лес:</b> отстреливай видения, светящаяся ограда показывает границу арены. <b>Bhop-парк:</b> платформы и прыжки на время. <b>Свободный мир:</b> бесконечный лес, быстрый банни-хоп и фокус по своему вкусу.</p>
 <p><b>WASD</b> — движение, <b>мышь</b> — взгляд, <b>ЛКМ</b> — атака, <b>Пробел</b> — банни-хоп. Воздушный стрейф с A/D помогает разогнаться. В Bhop-парке пройди платформенную трассу на время.</p>
 ${touchDevice?'<p><b>На телефоне:</b> джойстик слева, свайп справа для обзора; экранные кнопки — прыжок, огонь, прицел, ножи и якорь.</p>':''}
 <p>Увидишь светящийся луч, там <b>Объект Ясности</b>. Подбеги и зажми <b>E</b>, выдержи панику, и Фокус вернётся.</p>`,'Войти',()=>{reset();lock()});
@@ -226,14 +255,14 @@ function shoot(){if(S.cd>0)return;const w=equipped();kick=1;
 function accel(w,ws,ac,dt){const cur=vel.x*w.x+vel.z*w.z,add=ws-cur;if(add<=0)return;const a=Math.min(ac*ws*dt,add);vel.x+=w.x*a;vel.z+=w.z*a}
 let last=performance.now();
 function loop(n){requestAnimationFrame(loop);const dt=Math.min((n-last)/1000,.05);last=n;if(S&&alive&&locked)upd(dt);if(S)fx(dt);ren.render(sc,cam)}
-function upd(dt){const mode=S.mode;S.t+=dt;S.cd-=dt;S.boost=Math.max(0,S.boost-dt);S.shake=Math.max(0,S.shake-dt*3);S.flash=Math.max(0,S.flash-dt*1.5);S.mt-=dt;if(S.mt<0)$('msg').textContent='';if(mode==='bhop')streamBhop();
+function upd(dt){const mode=S.mode;S.t+=dt;S.cd-=dt;S.boost=Math.max(0,S.boost-dt);S.shake=Math.max(0,S.shake-dt*3);S.flash=Math.max(0,S.flash-dt*1.5);S.mt-=dt;if(S.mt<0)$('msg').textContent='';if(mode==='bhop')streamBhop();if(mode==='free')streamFreeForest();
  const fw=new T.Vector3(-Math.sin(yaw),0,-Math.cos(yaw)),rt=new T.Vector3(Math.cos(yaw),0,-Math.sin(yaw));
  const w=fw.multiplyScalar((K.KeyW?1:0)-(K.KeyS?1:0)).add(rt.multiplyScalar((K.KeyD?1:0)-(K.KeyA?1:0)));if(w.lengthSq()>0)w.normalize();
  const groundPad=mode==='bhop'?bhopPads.find(p=>Math.abs(pos.x-p.x)<p.sx/2+.24&&Math.abs(pos.z-p.z)<p.sz/2+.24&&pos.y<=p.y+.055&&pos.y>=p.y-.12):null;
- let on=mode==='bhop'?!!groundPad&&vel.y<=0:pos.y<=.001&&vel.y<=0;if(on&&K.Space){vel.y=mode==='bhop'?9:8;on=false;snd(500,.08,'sine',.04)}
- if(on){const sp=Math.hypot(vel.x,vel.z),fr=K.Space?.35:5.5;if(sp>0){const ns=Math.max(sp-Math.max(sp,3)*fr*dt,0)/sp;vel.x*=ns;vel.z*=ns}accel(w,mode==='bhop'?12:8.5,mode==='bhop'?16:10,dt)}else{vel.y-=(mode==='bhop'?20:22)*dt;accel(w,mode==='bhop'?2.4:1.6,mode==='bhop'?100:70,dt)}
- if(mode==='bhop'&&w.lengthSq()===0){const sp=Math.hypot(vel.x,vel.z);if(sp>0.01){const side=new T.Vector3(-vel.z,0,vel.x).normalize().multiplyScalar((K.KeyA?1:0)-(K.KeyD?1:0));accel(side,sp+2,22,dt)}}
- const stepCount=mode==='bhop'?Math.min(60,Math.max(1,Math.ceil(Math.max(Math.hypot(vel.x,vel.z),Math.abs(vel.y))*dt/.3))):1,step=dt/stepCount;let landed=null;
+ let on=mode==='bhop'?!!groundPad&&vel.y<=0:pos.y<=.001&&vel.y<=0;if(on&&K.Space){vel.y=mode==='bhop'?9:mode==='free'?9.6:8;on=false;snd(500,.08,'sine',.04)}
+ if(on){const sp=Math.hypot(vel.x,vel.z),fr=mode==='free'?(K.Space?.24:.55):(K.Space?.35:5.5);if(sp>0){const ns=Math.max(sp-Math.max(sp,3)*fr*dt,0)/sp;vel.x*=ns;vel.z*=ns}accel(w,mode==='bhop'?12:mode==='free'?15:8.5,mode==='bhop'?16:mode==='free'?19:10,dt)}else{vel.y-=(mode==='bhop'||mode==='free'?20:22)*dt;accel(w,mode==='bhop'?2.4:mode==='free'?3.2:1.6,mode==='free'?130:mode==='bhop'?100:70,dt)}
+ if((mode==='bhop'||mode==='free')&&w.lengthSq()===0){const sp=Math.hypot(vel.x,vel.z);if(sp>0.01){const side=new T.Vector3(-vel.z,0,vel.x).normalize().multiplyScalar((K.KeyA?1:0)-(K.KeyD?1:0));accel(side,sp+2,mode==='free'?28:22,dt)}}
+ const stepCount=Math.min(60,Math.max(1,Math.ceil(Math.max(Math.hypot(vel.x,vel.z),Math.abs(vel.y))*dt/.3))),step=dt/stepCount;let landed=null;
  for(let n=0;n<stepCount;n++){const px=pos.x,py=pos.y,pz=pos.z;pos.x+=vel.x*step;pos.z+=vel.z*step;pos.y+=vel.y*step;
   if(mode==='bhop'){for(const p of bhopPads){const overlapX=Math.abs(pos.x-p.x)<p.sx/2+.28,overlapZ=Math.abs(pos.z-p.z)<p.sz/2+.28;if(!overlapX||!overlapZ)continue;
     if(vel.y<=0&&py>=p.y-.035&&pos.y<=p.y){pos.y=p.y;vel.y=0;landed=p;continue}
@@ -242,10 +271,10 @@ function upd(dt){const mode=S.mode;S.t+=dt;S.cd-=dt;S.boost=Math.max(0,S.boost-d
     if(Math.abs(pos.x-p.x)<p.sx/2+.28&&Math.abs(px-p.x)>=p.sx/2+.28){pos.x=p.x+Math.sign(px-p.x)*(p.sx/2+.29);vel.x=0}
     else if(Math.abs(pos.z-p.z)<p.sz/2+.28&&Math.abs(pz-p.z)>=p.sz/2+.28){pos.z=p.z+Math.sign(pz-p.z)*(p.sz/2+.29);vel.z=0}
     else if(penX<penZ){pos.x=p.x+Math.sign(pos.x-p.x)*(p.sx/2+.29);vel.x=0}else{pos.z=p.z+Math.sign(pos.z-p.z)*(p.sz/2+.29);vel.z=0}
-   }}else if(pos.y<0){pos.y=0;vel.y=0}}
+   }}else{if(pos.y<0){pos.y=0;vel.y=0}const obstacles=mode==='free'?freeColliders:treeColliders;for(const c of obstacles){let dx=pos.x-c.x,dz=pos.z-c.z,d=Math.hypot(dx,dz),min=c.r+.48;if(d>=min)continue;if(d<.001){dx=1;dz=0;d=1}const nx=dx/d,nz=dz/d;pos.x=c.x+nx*min;pos.z=c.z+nz*min;const inward=vel.x*nx+vel.z*nz;if(inward<0){vel.x-=inward*nx;vel.z-=inward*nz}}}}
  if(landed){S.checkpoint=landed.id;S.checkpointPos={x:landed.x,y:landed.y,z:landed.z}}
  if(mode==='bhop'){streamBhop();if(pos.y < -14){rebuildBhopAtCheckpoint();pos.set(S.checkpointPos.x,S.checkpointPos.y,S.checkpointPos.z);vel.set(0,0,0);say('Возврат на последнюю платформу')}}
- if(mode!=='bhop'){const rr=Math.hypot(pos.x,pos.z);if(rr>85){pos.x*=85/rr;pos.z*=85/rr}}
+ if(mode==='trip'){const rr=Math.hypot(pos.x,pos.z);if(rr>83.45){pos.x*=83.45/rr;pos.z*=83.45/rr}}
  hs=Math.hypot(vel.x,vel.z);
  if(fire)shoot();
  // enemies
@@ -262,7 +291,7 @@ function upd(dt){const mode=S.mode;S.t+=dt;S.cd-=dt;S.boost=Math.max(0,S.boost-d
    if(S.hold>=1){S.f=Math.min(100,S.f+45);S.boost=7;S.cl=false;sc.remove(stump);S.hold=0;S.flash=1;[523,659,784,1047].forEach((f,i)=>setTimeout(()=>snd(f,1.3,'sine',.08),i*90));say('Прорыв. Фокус вернулся')}}
   else S.hold=Math.max(0,S.hold-dt*.6)}
  if(S.f<35){S.tick-=dt;if(S.tick<=0){S.tick=.7;snd(1200,.04,'square',.04)}}
- if(mode==='trip'&&S.f<=0){alive=false;document.exitPointerLock();menu('Фокус потерян',`<p>Ты продержался <b>${S.t.toFixed(0)} с</b> и развеял <b>${S.k}</b> галлюцинаций.</p>`,'Ещё раз',()=>{reset();lock()})}}
+ if(mode==='trip'&&S.f<=0){alive=false;document.exitPointerLock();if(touchDevice){locked=false;$('touchui').style.display='none'}menu('Фокус потерян',`<p>Ты продержался <b>${S.t.toFixed(0)} с</b> и развеял <b>${S.k}</b> галлюцинаций.</p>`,'Ещё раз',()=>{reset();lock()})}}
 function fx(dt){const q=1-Math.max(0,S.f)/100,t=performance.now()/1000;
  gm.uniforms.t.value=t;gm.uniforms.q.value=q;
  sc.background.setHSL((t*.03+q*.2)%1,.65,.22+q*.06);sc.fog.color.copy(sc.background);
@@ -277,7 +306,8 @@ function fx(dt){const q=1-Math.max(0,S.f)/100,t=performance.now()/1000;
  cam.rotation.set(pitch+rnd(-1,1)*q*.01,yaw,Math.sin(t*1.3)*q*.06+Math.sin(t*.7)*.015*ST.trip+rnd(-1,1)*S.shake*.03);
  const isScoped=aiming&&equipped().kind==='sniper',targetFov=isScoped?22:ST.fov+Math.min(hs,25)*.5+Math.sin(t*2)*(q*7+tp*1.5);cam.fov+=(targetFov-cam.fov)*Math.min(1,dt*16);cam.updateProjectionMatrix();
  pl.position.set(pos.x,3,pos.z);pl.color.setHSL((t*.1)%1,1,.6);
- kick=Math.max(0,kick-dt*8);weaponMotion=Math.max(0,weaponMotion-dt*5);inspectTimer=Math.max(0,inspectTimer-dt);const inspect=inspectTimer>0?Math.sin((1-inspectTimer/1.8)*Math.PI):0;gun.position.set(.26+inspect*.32,-.24+inspect*.08,-.55+kick*.1+weaponMotion*.15);gun.rotation.x=kick*.08-weaponMotion*.9-inspect*.38;gun.rotation.y=Math.sin(weaponMotion*Math.PI)*.3+inspect*(equipped().kind==='knife'?1.3:.9);gun.rotation.z=-inspect*.55;
+ kick=Math.max(0,kick-dt*8);weaponMotion=Math.max(0,weaponMotion-dt*5);inspectTimer=Math.max(0,inspectTimer-dt);const inspect=inspectTimer>0?Math.sin((1-inspectTimer/1.8)*Math.PI):0,inspectP=1-inspectTimer/1.8;gun.position.set(.26+inspect*.32,-.24+inspect*.08,-.55+kick*.1+weaponMotion*.15);gun.rotation.x=kick*.08-weaponMotion*.9-inspect*(equipped().kind==='knife'?.16:.38);gun.rotation.y=Math.sin(weaponMotion*Math.PI)*.3;gun.rotation.z=0;
+ if(knifeRig){const kind=knifeRig.userData.kind;knifeRig.rotation.x=0;knifeRig.rotation.y=0;knifeRig.rotation.z=kind==='karambit'?-.72+(inspectP<.5?inspectP*4*Math.PI:(1-inspectP)*4*Math.PI)+inspect*.12:-.72+inspect*.18;if(kind==='butterfly'){knifeFlipA.rotation.z=inspect*2.5;knifeFlipB.rotation.z=-inspect*2.5;knifeRig.rotation.y=inspect*.55}else if(kind==='bayonet'){knifeRig.rotation.x=inspect*.35;knifeRig.rotation.y=Math.sin(inspectP*Math.PI*2)*inspect*.8}}
  if(tlT>0){tlT-=dt;if(tlT<=0)tl.visible=false}
  for(let i=parts.length-1;i>=0;i--){const m=parts[i],u=m.userData;u.v.y-=15*dt;m.position.addScaledVector(u.v,dt);u.l-=dt;m.scale.setScalar(Math.max(u.l,.01));if(u.l<=0){sc.remove(m);m.material.dispose();parts.splice(i,1)}}
  const r=spread()*innerHeight/2,d=Math.max(16,r*2);$('ch').style.display=isScoped?'none':'block';$('ch').style.transform=`translate(-50%,-50%) scale(${Math.min(4,d/20)})`;$('scope').style.display=isScoped?'block':'none';
@@ -288,9 +318,9 @@ function fx(dt){const q=1-Math.max(0,S.f)/100,t=performance.now()/1000;
  const ac=$('acid');ac.style.opacity=Math.min(.55,.14*tp+q*.35);ac.style.transform=`rotate(${t*8}deg)`;
  $('fl').style.opacity=S.flash*.8;
  let extra='';if(S.cl)extra=`   |   Пень: ${Math.hypot(pos.x-stump.position.x,pos.z-stump.position.z).toFixed(0)} м`;if(S.boost>0)extra+=`   |   Ясность ${S.boost.toFixed(0)} с`;
- const clock=S.t.toFixed(1),modeLabel=S.mode==='bhop'?'BUNNY HOP':'RAD FOREST',detail=S.mode==='bhop'?`STAGE ${S.checkpoint} · ${bhopPads.length} CHUNKS`:`KILLS ${S.k} · FOCUS ${Math.max(0,S.f).toFixed(0)}`;
+ const clock=S.t.toFixed(1),modeLabel=S.mode==='bhop'?'BUNNY HOP':S.mode==='free'?'FREE ROAM':'RAD FOREST',detail=S.mode==='bhop'?`STAGE ${S.checkpoint} · ${bhopPads.length} CHUNKS`:S.mode==='free'?`FOCUS ${Math.max(0,S.f).toFixed(0)} · SPEED ${hs.toFixed(1)} UPS`:`KILLS ${S.k} · FOCUS ${Math.max(0,S.f).toFixed(0)}`;
  $('matchhud').innerHTML=`<div class="matchmode">${modeLabel}</div><div class="matchclock">${clock}</div><div class="matchdetail">${detail}</div>`;
- const f=Math.max(0,Math.min(100,S.f));$('vitals').innerHTML=S.mode==='bhop'?`<div class="vitalhead"><span>SPEED</span><span class="vitalvalue">${hs.toFixed(1)} <small>UPS</small></span></div><div class="vitalbar"><i style="width:${Math.min(100,hs*5)}%"></i></div><div class="vitalfoot"><span>BEST RUN<b>${S.t.toFixed(1)}s</b></span><span>CHECKPOINT<b>${S.checkpoint}</b></span></div>`:`<div class="vitalhead"><span>FOCUS</span><span class="vitalvalue">${f.toFixed(0)}</span></div><div class="vitalbar"><i style="width:${f}%"></i></div><div class="vitalfoot"><span>ELIMINATIONS<b>${S.k}</b></span><span>TIME<b>${clock}s</b></span></div>`;
+ const f=Math.max(0,Math.min(100,S.f));$('vitals').innerHTML=S.mode==='bhop'?`<div class="vitalhead"><span>SPEED</span><span class="vitalvalue">${hs.toFixed(1)} <small>UPS</small></span></div><div class="vitalbar"><i style="width:${Math.min(100,hs*5)}%"></i></div><div class="vitalfoot"><span>BEST RUN<b>${S.t.toFixed(1)}s</b></span><span>CHECKPOINT<b>${S.checkpoint}</b></span></div>`:`<div class="vitalhead"><span>${S.mode==='free'?'FREE FOCUS':'FOCUS'}</span><span class="vitalvalue">${f.toFixed(0)}</span></div><div class="vitalbar"><i style="width:${f}%"></i></div><div class="vitalfoot"><span>${S.mode==='free'?'SPEED':'ELIMINATIONS'}<b>${S.mode==='free'?hs.toFixed(1)+' UPS':S.k}</b></span><span>TIME<b>${clock}s</b></span></div>`;
  const slots=[{name:'Снайперка',meta:'RIFLE · ∞'},{name:'Дигл',meta:'SIDEARM · ∞'},{name:KNIVES[knifeIndex].name,meta:'MELEE'}];$('weaponhud').innerHTML=slots.map((w,i)=>`<div class="wepslot ${weaponIndex===i?'active':''}"><div><span class="wepnum">${i+1}</span><span class="wepname">${w.name}</span></div><div class="wepmeta">${w.meta}</div></div>`).join('');
  $('hb').style.display=S.hold>0?'block':'none';$('hf').style.width=S.hold*100+'%'}
 requestAnimationFrame(loop);
